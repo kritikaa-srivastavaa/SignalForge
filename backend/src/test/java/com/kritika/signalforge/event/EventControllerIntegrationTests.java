@@ -1,11 +1,14 @@
 package com.kritika.signalforge.event;
 
 import java.time.Instant;
+import java.time.Clock;
+import java.time.ZoneOffset;
 import java.util.UUID;
 
 import jakarta.persistence.EntityManager;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -22,6 +25,11 @@ import static org.assertj.core.api.Assertions.within;
 import static org.hamcrest.Matchers.hasItems;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.clearInvocations;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -46,6 +54,52 @@ class EventControllerIntegrationTests {
 
 	@MockitoBean
 	private EventPublisher eventPublisher;
+
+	@MockitoBean
+	private EventRateLimiter eventRateLimiter;
+
+	@BeforeEach
+	void freshRateLimitState() {
+		// Delegate to a real limiter with fresh state and fixed time for every test.
+		EventRateLimiter limiter = new EventRateLimiter(Clock.fixed(
+				Instant.parse("2026-09-15T12:00:00Z"), ZoneOffset.UTC));
+		when(eventRateLimiter.tryAcquire(anyString())).thenAnswer(call -> limiter.tryAcquire(call.getArgument(0)));
+	}
+
+	@Test
+	void limitsPostsWithoutPersistingOrPublishingRejectedRequests() throws Exception {
+		String request = """
+				{"service":"payment-service","type":"API_ERROR","severity":"LOW",
+				 "message":"Request failed","timestamp":"2026-09-15T12:00:00Z"}
+				""";
+		long before = eventRepository.count();
+		for (int i = 0; i < 10; i++) {
+			mockMvc.perform(post("/events").with(http -> { http.setRemoteAddr("192.0.2.1"); return http; })
+					.contentType(MediaType.APPLICATION_JSON).content(request))
+					.andExpect(status().isCreated());
+		}
+		assertThat(eventRepository.count()).isEqualTo(before + 10);
+		verify(eventPublisher, times(10)).publish(any(EventMessage.class));
+		clearInvocations(eventPublisher);
+
+		mockMvc.perform(post("/events").with(http -> { http.setRemoteAddr("192.0.2.1"); return http; })
+				.contentType(MediaType.APPLICATION_JSON).content(request))
+				.andExpect(status().isTooManyRequests());
+		entityManager.flush();
+		entityManager.clear();
+		assertThat(eventRepository.count()).isEqualTo(before + 10);
+		verifyNoInteractions(eventPublisher);
+
+		mockMvc.perform(get("/events").with(http -> { http.setRemoteAddr("192.0.2.1"); return http; }))
+				.andExpect(status().isOk());
+		mockMvc.perform(get("/incidents").with(http -> { http.setRemoteAddr("192.0.2.1"); return http; }))
+				.andExpect(status().isOk());
+		mockMvc.perform(post("/events").with(http -> { http.setRemoteAddr("192.0.2.2"); return http; })
+				.contentType(MediaType.APPLICATION_JSON).content(request))
+				.andExpect(status().isCreated());
+		assertThat(eventRepository.count()).isEqualTo(before + 11);
+		verify(eventPublisher).publish(any(EventMessage.class));
+	}
 
 	@Test
 	void returnsAllEvents() throws Exception {
