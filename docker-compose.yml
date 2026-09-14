@@ -1,0 +1,18 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: signalforge-postgres
+
+    environment:
+      POSTGRES_DB: signalforge
+      POSTGRES_USER: signalforge
+      POSTGRES_PASSWORD: signalforge
+
+    ports:
+      - "5433:5432"
+
+    volumes:
+      - signalforge_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  signalforge_postgres_data:
