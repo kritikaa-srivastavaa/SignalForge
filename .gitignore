@@ -1,0 +1,45 @@
+# Java / Maven build output
+target/
+*.class
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.classpath
+.project
+.settings/
+.sts4-cache/
+
+# Logs
+*.log
+logs/
+
+# Environment / local secrets
+.env
+.env.*
+!.env.example
+
+# OS-generated files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.bak
+*~
+
+# JVM crash logs
+hs_err_pid*
+replay_pid*
+
+# Future frontend / Node artifacts
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo

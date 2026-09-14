@@ -10,16 +10,21 @@ import org.springframework.transaction.annotation.Transactional;
 public class EventService {
 
 	private final EventRepository eventRepository;
+	private final EventPublisher eventPublisher;
 
-	public EventService(EventRepository eventRepository) {
+	public EventService(EventRepository eventRepository, EventPublisher eventPublisher) {
 		this.eventRepository = eventRepository;
+		this.eventPublisher = eventPublisher;
 	}
 
 	@Transactional
 	public EventResponse createEvent(EventRequest request) {
 		Event event = new Event(request.service(), request.type(), request.severity(),
 				request.message(), request.timestamp());
-		Event saved = eventRepository.save(event);
+		// Execute the INSERT before publishing; the transaction commits when this method returns.
+		Event saved = eventRepository.saveAndFlush(event);
+		eventPublisher.publish(new EventMessage(saved.getId(), saved.getService(), saved.getType(),
+				saved.getSeverity(), saved.getMessage(), saved.getTimestamp(), saved.getReceivedAt()));
 
 		return toResponse(saved);
 	}

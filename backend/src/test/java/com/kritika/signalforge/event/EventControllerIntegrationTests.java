@@ -6,11 +6,13 @@ import java.util.UUID;
 import jakarta.persistence.EntityManager;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
 
@@ -18,6 +20,8 @@ import static java.time.temporal.ChronoUnit.MICROS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
 import static org.hamcrest.Matchers.hasItems;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -39,6 +43,9 @@ class EventControllerIntegrationTests {
 
 	@Autowired
 	private EntityManager entityManager;
+
+	@MockitoBean
+	private EventPublisher eventPublisher;
 
 	@Test
 	void returnsAllEvents() throws Exception {
@@ -121,6 +128,17 @@ class EventControllerIntegrationTests {
 		assertThat(persisted.getTimestamp()).isEqualTo(Instant.parse("2026-09-14T10:30:00Z"));
 		// PostgreSQL stores timestamps with microsecond precision.
 		assertThat(persisted.getReceivedAt()).isCloseTo(response.receivedAt(), within(1, MICROS));
+
+		ArgumentCaptor<EventMessage> messageCaptor = ArgumentCaptor.forClass(EventMessage.class);
+		verify(eventPublisher).publish(messageCaptor.capture());
+		EventMessage published = messageCaptor.getValue();
+		assertThat(published.id()).isEqualTo(persisted.getId());
+		assertThat(published.receivedAt()).isNotNull().isEqualTo(response.receivedAt());
+		assertThat(published.service()).isEqualTo("payment-service");
+		assertThat(published.type()).isEqualTo("API_ERROR");
+		assertThat(published.severity()).isEqualTo("HIGH");
+		assertThat(published.message()).isEqualTo("Payment gateway timed out");
+		assertThat(published.timestamp()).isEqualTo(Instant.parse("2026-09-14T10:30:00Z"));
 	}
 
 	@Test
@@ -143,5 +161,6 @@ class EventControllerIntegrationTests {
 		entityManager.flush();
 		entityManager.clear();
 		assertThat(eventRepository.count()).isEqualTo(countBefore);
+		verifyNoInteractions(eventPublisher);
 	}
 }
