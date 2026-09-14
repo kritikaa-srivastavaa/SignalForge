@@ -16,10 +16,11 @@ import org.springframework.transaction.annotation.Transactional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.times;
 
-@SpringBootTest(properties = "spring.kafka.listener.auto-startup=false")
+@SpringBootTest(properties = {"spring.kafka.listener.auto-startup=false", "spring.kafka.admin.auto-create=false"})
 @Transactional
 class EventProcessingServiceIntegrationTests {
 
@@ -81,6 +82,11 @@ class EventProcessingServiceIntegrationTests {
 		TestTransaction.flagForRollback();
 		TestTransaction.end();
 		assertThat(repository.existsById(event.id())).isFalse();
+		reset(detectionService);
+		TestTransaction.start();
+		processingService.process(event);
+		assertThat(repository.existsById(event.id())).isTrue();
+		verify(detectionService).process(event);
 	}
 
 	private EventMessage event(long id) {

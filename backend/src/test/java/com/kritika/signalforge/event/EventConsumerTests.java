@@ -12,12 +12,22 @@ import org.springframework.kafka.support.serializer.JacksonJsonSerializer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 class EventConsumerTests {
 
 	private final EventProcessingService processingService = mock(EventProcessingService.class);
+
+	@Test
+	void propagatesProcessingFailure() {
+		EventMessage event = exampleEvent();
+		RuntimeException failure = new RuntimeException("Test processing failure");
+		doThrow(failure).when(processingService).process(event);
+		assertThatThrownBy(() -> new EventConsumer(processingService).consume(event)).isSameAs(failure);
+	}
 
 	@Test
 	void acceptsEventMessage() {
