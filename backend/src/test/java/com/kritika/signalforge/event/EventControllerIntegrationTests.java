@@ -1,6 +1,7 @@
 package com.kritika.signalforge.event;
 
 import java.time.Instant;
+import java.util.UUID;
 
 import jakarta.persistence.EntityManager;
 
@@ -16,6 +17,8 @@ import tools.jackson.databind.ObjectMapper;
 import static java.time.temporal.ChronoUnit.MICROS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
+import static org.hamcrest.Matchers.hasItems;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -36,6 +39,50 @@ class EventControllerIntegrationTests {
 
 	@Autowired
 	private EntityManager entityManager;
+
+	@Test
+	void returnsAllEvents() throws Exception {
+		Instant timestamp = Instant.parse("2026-09-14T10:30:00Z");
+		Event first = eventRepository.save(new Event("payment-service", "API_ERROR", "HIGH",
+				"Payment gateway timed out", timestamp));
+		Event second = eventRepository.save(new Event("order-service", "ORDER_CREATED", "LOW",
+				"Order received", timestamp));
+		entityManager.flush();
+		entityManager.clear();
+
+		// Existing database rows and result order do not affect this assertion.
+		mockMvc.perform(get("/events"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$[*].id", hasItems(first.getId().toString(), second.getId().toString())));
+	}
+
+	@Test
+	void returnsEventById() throws Exception {
+		Instant timestamp = Instant.parse("2026-09-14T10:30:00Z");
+		Event event = eventRepository.saveAndFlush(new Event("payment-service", "API_ERROR", "HIGH",
+				"Payment gateway timed out", timestamp));
+		entityManager.clear();
+
+		String responseBody = mockMvc.perform(get("/events/{id}", event.getId()))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.id").value(event.getId().toString()))
+				.andExpect(jsonPath("$.service").value("payment-service"))
+				.andExpect(jsonPath("$.type").value("API_ERROR"))
+				.andExpect(jsonPath("$.severity").value("HIGH"))
+				.andExpect(jsonPath("$.message").value("Payment gateway timed out"))
+				.andExpect(jsonPath("$.timestamp").value(timestamp.toString()))
+				.andExpect(jsonPath("$.receivedAt").isNotEmpty())
+				.andReturn().getResponse().getContentAsString();
+
+		EventResponse response = objectMapper.readValue(responseBody, EventResponse.class);
+		assertThat(response.receivedAt()).isCloseTo(event.getReceivedAt(), within(1, MICROS));
+	}
+
+	@Test
+	void returnsNotFoundForMissingEvent() throws Exception {
+		mockMvc.perform(get("/events/{id}", UUID.randomUUID()))
+				.andExpect(status().isNotFound());
+	}
 
 	@Test
 	void createsAndPersistsEvent() throws Exception {
