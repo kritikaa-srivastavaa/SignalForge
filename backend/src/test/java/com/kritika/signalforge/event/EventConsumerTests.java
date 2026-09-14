@@ -4,7 +4,7 @@ import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
 
-import com.kritika.signalforge.incident.IncidentDetectionService;
+import com.kritika.signalforge.event.processing.EventProcessingService;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.kafka.support.serializer.JacksonJsonDeserializer;
@@ -17,13 +17,13 @@ import static org.mockito.Mockito.verify;
 
 class EventConsumerTests {
 
-	private final IncidentDetectionService detectionService = mock(IncidentDetectionService.class);
+	private final EventProcessingService processingService = mock(EventProcessingService.class);
 
 	@Test
 	void acceptsEventMessage() {
 		EventMessage event = exampleEvent();
-		assertThatCode(() -> new EventConsumer(detectionService).consume(event)).doesNotThrowAnyException();
-		verify(detectionService).process(event);
+		assertThatCode(() -> new EventConsumer(processingService).consume(event)).doesNotThrowAnyException();
+		verify(processingService).process(event);
 	}
 
 	@Test
@@ -41,8 +41,8 @@ class EventConsumerTests {
 
 			// Record equality checks every field, including UUID and both Instant values.
 			assertThat(received).isEqualTo(original);
-			assertThatCode(() -> new EventConsumer(detectionService).consume(received)).doesNotThrowAnyException();
-			verify(detectionService).process(received);
+			assertThatCode(() -> new EventConsumer(processingService).consume(received)).doesNotThrowAnyException();
+			verify(processingService).process(received);
 		}
 	}
 
