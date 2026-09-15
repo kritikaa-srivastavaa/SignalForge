@@ -1,6 +1,7 @@
 package com.kritika.signalforge.incident;
 
-import java.util.List;
+import com.kritika.signalforge.common.PageResponse;
+import com.kritika.signalforge.common.Pagination;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -16,10 +17,10 @@ public class IncidentService {
 	}
 
 	@Transactional(readOnly = true)
-	public List<IncidentResponse> getAllIncidents() {
-		return incidentRepository.findAll().stream()
-				.map(this::toResponse)
-				.toList();
+	public PageResponse<IncidentResponse> getIncidents(String service, String type, String severity, String status, int page, int size) {
+		return PageResponse.from(incidentRepository.findFiltered(
+				Pagination.filter(service), Pagination.filter(type), Pagination.filter(severity), Pagination.filter(status),
+				Pagination.request(page, size, "createdAt")).map(this::toResponse));
 	}
 
 	@Transactional(readOnly = true)

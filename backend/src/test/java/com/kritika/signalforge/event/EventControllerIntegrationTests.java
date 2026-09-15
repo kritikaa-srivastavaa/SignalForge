@@ -104,17 +104,17 @@ class EventControllerIntegrationTests {
 	@Test
 	void returnsAllEvents() throws Exception {
 		Instant timestamp = Instant.parse("2026-09-14T10:30:00Z");
-		Event first = eventRepository.save(new Event("payment-service", "API_ERROR", "HIGH",
+		Event first = eventRepository.save(new Event("payment-service", "LIST_TEST", "HIGH",
 				"Payment gateway timed out", timestamp));
-		Event second = eventRepository.save(new Event("order-service", "ORDER_CREATED", "LOW",
+		Event second = eventRepository.save(new Event("order-service", "LIST_TEST", "LOW",
 				"Order received", timestamp));
 		entityManager.flush();
 		entityManager.clear();
 
 		// Existing database rows and result order do not affect this assertion.
-		mockMvc.perform(get("/events"))
+		mockMvc.perform(get("/events").param("type", "LIST_TEST"))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$[*].id", hasItems(first.getId().toString(), second.getId().toString())));
+				.andExpect(jsonPath("$.content[*].id", hasItems(first.getId().toString(), second.getId().toString())));
 	}
 
 	@Test

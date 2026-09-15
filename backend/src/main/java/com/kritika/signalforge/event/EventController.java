@@ -1,6 +1,6 @@
 package com.kritika.signalforge.event;
 
-import java.util.List;
+import com.kritika.signalforge.common.PageResponse;
 import java.util.UUID;
 
 import jakarta.validation.Valid;
@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequestMapping("/events")
@@ -38,8 +39,13 @@ public class EventController {
 	}
 
 	@GetMapping
-	public List<EventResponse> getAllEvents() {
-		return eventService.getAllEvents();
+	public PageResponse<EventResponse> getEvents(
+			@RequestParam(required = false) String service,
+			@RequestParam(required = false) String type,
+			@RequestParam(required = false) String severity,
+			@RequestParam(defaultValue = "0") int page,
+			@RequestParam(defaultValue = "20") int size) {
+		return eventService.getEvents(service, type, severity, page, size);
 	}
 
 	@GetMapping("/{id}")

@@ -1,12 +1,13 @@
 package com.kritika.signalforge.incident;
 
-import java.util.List;
+import com.kritika.signalforge.common.PageResponse;
 import java.util.UUID;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequestMapping("/incidents")
@@ -19,8 +20,14 @@ public class IncidentController {
 	}
 
 	@GetMapping
-	public List<IncidentResponse> getAllIncidents() {
-		return incidentService.getAllIncidents();
+	public PageResponse<IncidentResponse> getIncidents(
+			@RequestParam(required = false) String service,
+			@RequestParam(required = false) String type,
+			@RequestParam(required = false) String severity,
+			@RequestParam(required = false) String status,
+			@RequestParam(defaultValue = "0") int page,
+			@RequestParam(defaultValue = "20") int size) {
+		return incidentService.getIncidents(service, type, severity, status, page, size);
 	}
 
 	@GetMapping("/{id}")

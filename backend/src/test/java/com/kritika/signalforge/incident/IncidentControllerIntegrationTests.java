@@ -38,16 +38,16 @@ class IncidentControllerIntegrationTests {
 	@Test
 	void returnsAllIncidents() throws Exception {
 		Incident first = incidentRepository.save(new Incident(UUID.randomUUID(), "payment-service",
-				"API_ERROR", "HIGH", "High severity event detected in payment-service"));
+				"LIST_TEST", "HIGH", "High severity event detected in payment-service"));
 		Incident second = incidentRepository.save(new Incident(UUID.randomUUID(), "order-service",
-				"ORDER_ERROR", "high", "High severity event detected in order-service"));
+				"LIST_TEST", "high", "High severity event detected in order-service"));
 		entityManager.flush();
 		entityManager.clear();
 
-		String body = mockMvc.perform(get("/incidents"))
+		String body = mockMvc.perform(get("/incidents").param("type", "LIST_TEST"))
 				.andExpect(status().isOk())
 				.andReturn().getResponse().getContentAsString();
-		IncidentResponse[] responses = objectMapper.readValue(body, IncidentResponse[].class);
+		IncidentResponse[] responses = objectMapper.treeToValue(objectMapper.readTree(body).get("content"), IncidentResponse[].class);
 
 		// Check our rows without assuming an empty database or a particular order.
 		IncidentResponse firstResponse = java.util.Arrays.stream(responses)

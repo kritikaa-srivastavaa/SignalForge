@@ -1,6 +1,7 @@
 package com.kritika.signalforge.event;
 
-import java.util.List;
+import com.kritika.signalforge.common.PageResponse;
+import com.kritika.signalforge.common.Pagination;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -30,10 +31,10 @@ public class EventService {
 	}
 
 	@Transactional(readOnly = true)
-	public List<EventResponse> getAllEvents() {
-		return eventRepository.findAll().stream()
-				.map(this::toResponse)
-				.toList();
+	public PageResponse<EventResponse> getEvents(String service, String type, String severity, int page, int size) {
+		return PageResponse.from(eventRepository.findFiltered(
+				Pagination.filter(service), Pagination.filter(type), Pagination.filter(severity),
+				Pagination.request(page, size, "timestamp")).map(this::toResponse));
 	}
 
 	@Transactional(readOnly = true)
