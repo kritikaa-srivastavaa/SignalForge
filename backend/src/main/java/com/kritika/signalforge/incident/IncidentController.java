@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PatchMapping;
 
 @RestController
 @RequestMapping("/incidents")
@@ -24,7 +25,7 @@ public class IncidentController {
 			@RequestParam(required = false) String service,
 			@RequestParam(required = false) String type,
 			@RequestParam(required = false) String severity,
-			@RequestParam(required = false) String status,
+			@RequestParam(required = false) IncidentStatus status,
 			@RequestParam(defaultValue = "0") int page,
 			@RequestParam(defaultValue = "20") int size) {
 		return incidentService.getIncidents(service, type, severity, status, page, size);
@@ -33,5 +34,15 @@ public class IncidentController {
 	@GetMapping("/{id}")
 	public IncidentResponse getIncidentById(@PathVariable UUID id) {
 		return incidentService.getIncidentById(id);
+	}
+
+	@PatchMapping("/{id}/acknowledge")
+	public IncidentResponse acknowledgeIncident(@PathVariable UUID id) {
+		return incidentService.acknowledgeIncident(id);
+	}
+
+	@PatchMapping("/{id}/resolve")
+	public IncidentResponse resolveIncident(@PathVariable UUID id) {
+		return incidentService.resolveIncident(id);
 	}
 }

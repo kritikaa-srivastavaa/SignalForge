@@ -10,6 +10,9 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Version;
 
 @Entity
 @Table(name = "incidents")
@@ -36,7 +39,12 @@ public class Incident {
 	private String title;
 
 	@Column(nullable = false)
-	private String status;
+	@Enumerated(EnumType.STRING)
+	private IncidentStatus status;
+
+	@Version
+	@Column(nullable = false)
+	private long version;
 
 	@Column(name = "created_at", nullable = false, updatable = false)
 	private Instant createdAt;
@@ -51,7 +59,7 @@ public class Incident {
 		this.type = type;
 		this.severity = severity;
 		this.title = title;
-		this.status = "OPEN";
+		this.status = IncidentStatus.OPEN;
 	}
 
 	@PrePersist
@@ -83,8 +91,12 @@ public class Incident {
 		return title;
 	}
 
-	public String getStatus() {
+	public IncidentStatus getStatus() {
 		return status;
+	}
+
+	void changeStatus(IncidentStatus status) {
+		this.status = status;
 	}
 
 	public Instant getCreatedAt() {

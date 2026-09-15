@@ -55,7 +55,7 @@ class IncidentDetectionServiceIntegrationTests {
 		assertThat(reloaded.getService()).isEqualTo(event.service());
 		assertThat(reloaded.getType()).isEqualTo(event.type());
 		assertThat(reloaded.getSeverity()).isEqualTo(severity);
-		assertThat(reloaded.getStatus()).isEqualTo("OPEN");
+		assertThat(reloaded.getStatus()).isEqualTo(IncidentStatus.OPEN);
 		assertThat(reloaded.getTitle()).isEqualTo("Event spike detected for API_ERROR in payment-service");
 		assertThat(reloaded.getCreatedAt()).isNotNull();
 		assertCount(1);

@@ -115,7 +115,7 @@ class PaginationIntegrationTests {
 		}
 		mvc.perform(get("/incidents").param("service", SERVICE).param("status", "OPEN"))
 				.andExpect(jsonPath("$.totalElements").value(25));
-		mvc.perform(get("/incidents").param("service", SERVICE).param("status", "CLOSED"))
+		mvc.perform(get("/incidents").param("service", SERVICE).param("status", "RESOLVED"))
 				.andExpect(jsonPath("$.totalElements").value(0));
 	}
 

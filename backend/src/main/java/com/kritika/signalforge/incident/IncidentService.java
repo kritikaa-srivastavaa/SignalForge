@@ -17,9 +17,9 @@ public class IncidentService {
 	}
 
 	@Transactional(readOnly = true)
-	public PageResponse<IncidentResponse> getIncidents(String service, String type, String severity, String status, int page, int size) {
+	public PageResponse<IncidentResponse> getIncidents(String service, String type, String severity, IncidentStatus status, int page, int size) {
 		return PageResponse.from(incidentRepository.findFiltered(
-				Pagination.filter(service), Pagination.filter(type), Pagination.filter(severity), Pagination.filter(status),
+				Pagination.filter(service), Pagination.filter(type), Pagination.filter(severity), status,
 				Pagination.request(page, size, "createdAt")).map(this::toResponse));
 	}
 
@@ -33,6 +33,25 @@ public class IncidentService {
 	private IncidentResponse toResponse(Incident incident) {
 		return new IncidentResponse(incident.getId(), incident.getSourceEventId(), incident.getService(),
 				incident.getType(), incident.getSeverity(), incident.getTitle(),
-				incident.getStatus(), incident.getCreatedAt());
+				incident.getStatus().name(), incident.getCreatedAt());
+	}
+
+	@Transactional
+	public IncidentResponse acknowledgeIncident(UUID id) {
+		Incident incident = incidentRepository.findById(id)
+				.orElseThrow(() -> new IncidentNotFoundException(id));
+		if (incident.getStatus() == IncidentStatus.RESOLVED) {
+			throw new InvalidIncidentTransitionException(incident.getStatus(), IncidentStatus.ACKNOWLEDGED);
+		}
+		incident.changeStatus(IncidentStatus.ACKNOWLEDGED);
+		return toResponse(incident);
+	}
+
+	@Transactional
+	public IncidentResponse resolveIncident(UUID id) {
+		Incident incident = incidentRepository.findById(id)
+				.orElseThrow(() -> new IncidentNotFoundException(id));
+		incident.changeStatus(IncidentStatus.RESOLVED);
+		return toResponse(incident);
 	}
 }
