@@ -1,4 +1,6 @@
 package com.kritika.signalforge.event.processing;
+import com.kritika.signalforge.observability.SignalForgeMetrics;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -30,11 +32,12 @@ class EventProcessingSpikeIntegrationTests {
 	private EntityManager entityManager;
 
 	private EventProcessingService processingService;
+ private final SignalForgeMetrics metrics = new SignalForgeMetrics(new SimpleMeterRegistry());
 
 	@BeforeEach
 	void freshWindowState() {
 		// The test transaction covers both repositories; each test has a fresh rolling window.
-		processingService = new EventProcessingService(processedEvents, new IncidentDetectionService(incidents));
+		processingService = new EventProcessingService(processedEvents, new IncidentDetectionService(incidents, metrics), metrics);
 	}
 
 	@Test

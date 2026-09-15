@@ -1,5 +1,7 @@
 package com.kritika.signalforge.event;
 
+import com.kritika.signalforge.observability.SignalForgeMetrics;
+
 import com.kritika.signalforge.event.processing.EventProcessingService;
 
 import org.slf4j.Logger;
@@ -9,12 +11,14 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class EventConsumer {
+	private final SignalForgeMetrics metrics;
 
 	private static final Logger log = LoggerFactory.getLogger(EventConsumer.class);
 
 	private final EventProcessingService eventProcessingService;
 
-	public EventConsumer(EventProcessingService eventProcessingService) {
+	public EventConsumer(EventProcessingService eventProcessingService, SignalForgeMetrics metrics) {
+		this.metrics = metrics;
 		this.eventProcessingService = eventProcessingService;
 	}
 
@@ -22,6 +26,12 @@ public class EventConsumer {
 	public void consume(EventMessage event) {
 		log.info("Processing event id={} service={} type={} severity={}",
 				event.id(), event.service(), event.type(), event.severity());
-		eventProcessingService.process(event);
+		try {
+			eventProcessingService.process(event);
+		} catch (RuntimeException failure) {
+			// Counts failed attempts, including retries, not distinct event IDs.
+			metrics.recordProcessingFailure(failure);
+			throw failure;
+		}
 	}
 }

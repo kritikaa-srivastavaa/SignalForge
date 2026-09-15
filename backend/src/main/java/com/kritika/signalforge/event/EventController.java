@@ -1,5 +1,7 @@
 package com.kritika.signalforge.event;
 
+import com.kritika.signalforge.observability.SignalForgeMetrics;
+
 import com.kritika.signalforge.common.PageResponse;
 import java.util.UUID;
 
@@ -19,11 +21,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 @RestController
 @RequestMapping("/events")
 public class EventController {
+	private final SignalForgeMetrics metrics;
 
 	private final EventService eventService;
 	private final EventRateLimiter eventRateLimiter;
 
-	public EventController(EventService eventService, EventRateLimiter eventRateLimiter) {
+	public EventController(EventService eventService, EventRateLimiter eventRateLimiter, SignalForgeMetrics metrics) {
+		this.metrics = metrics;
 		this.eventService = eventService;
 		this.eventRateLimiter = eventRateLimiter;
 	}
@@ -33,6 +37,7 @@ public class EventController {
 			HttpServletRequest servletRequest) {
 		// Remote address only; reverse-proxy-aware identification is a later concern.
 		if (!eventRateLimiter.tryAcquire(servletRequest.getRemoteAddr())) {
+			metrics.recordRateLimitRejection();
 			throw new RateLimitExceededException();
 		}
 		return ResponseEntity.status(HttpStatus.CREATED).body(eventService.createEvent(request));

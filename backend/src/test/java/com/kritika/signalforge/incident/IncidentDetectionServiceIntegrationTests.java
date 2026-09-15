@@ -1,4 +1,6 @@
 package com.kritika.signalforge.incident;
+import com.kritika.signalforge.observability.SignalForgeMetrics;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -33,7 +35,7 @@ class IncidentDetectionServiceIntegrationTests {
 	@BeforeEach
 	void freshState() {
 		// Fresh in-memory state; the surrounding test transaction rolls back database writes.
-		detectionService = new IncidentDetectionService(incidentRepository);
+		detectionService = new IncidentDetectionService(incidentRepository, new SignalForgeMetrics(new SimpleMeterRegistry()));
 		countBefore = incidentRepository.count();
 	}
 

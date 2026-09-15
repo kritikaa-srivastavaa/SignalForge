@@ -1,4 +1,6 @@
 package com.kritika.signalforge.event;
+import com.kritika.signalforge.observability.SignalForgeMetrics;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
 import java.time.Instant;
 import java.util.Map;
@@ -66,7 +68,7 @@ class KafkaConsumerConfigTests {
 		backOff.setInterval(0);
 		DefaultErrorHandler handler = config.eventErrorHandler(recoverer, backOff);
 		EventProcessingService service = mock(EventProcessingService.class);
-		EventConsumer listener = new EventConsumer(service);
+		EventConsumer listener = new EventConsumer(service, new SignalForgeMetrics(new SimpleMeterRegistry()));
 		ConsumerRecord<String, EventMessage> record = record();
 		RuntimeException failure = new RuntimeException("First attempt");
 		doThrow(failure).doNothing().when(service).process(record.value());

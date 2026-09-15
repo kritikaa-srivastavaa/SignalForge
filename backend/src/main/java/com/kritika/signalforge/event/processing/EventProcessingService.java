@@ -1,5 +1,7 @@
 package com.kritika.signalforge.event.processing;
 
+import com.kritika.signalforge.observability.SignalForgeMetrics;
+
 import java.time.Instant;
 
 import com.kritika.signalforge.event.EventMessage;
@@ -12,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class EventProcessingService {
+	private final SignalForgeMetrics metrics;
 
 	private static final Logger log = LoggerFactory.getLogger(EventProcessingService.class);
 
@@ -19,7 +22,8 @@ public class EventProcessingService {
 	private final IncidentDetectionService incidentDetectionService;
 
 	public EventProcessingService(ProcessedEventRepository processedEventRepository,
-			IncidentDetectionService incidentDetectionService) {
+		IncidentDetectionService incidentDetectionService, SignalForgeMetrics metrics) {
+		this.metrics = metrics;
 		this.processedEventRepository = processedEventRepository;
 		this.incidentDetectionService = incidentDetectionService;
 	}
@@ -29,9 +33,11 @@ public class EventProcessingService {
 		// The marker and any incident write share one PostgreSQL transaction.
 		int registered = processedEventRepository.registerIfAbsent(event.id(), Instant.now());
 		if (registered == 0) {
+			metrics.recordDuplicateEvent(event.service(), event.type());
 			log.info("Skipping already processed event id={}", event.id());
 			return;
 		}
 		incidentDetectionService.process(event);
+		metrics.recordEventProcessed(event.service(), event.type());
 	}
 }

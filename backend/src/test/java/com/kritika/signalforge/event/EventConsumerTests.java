@@ -1,4 +1,6 @@
 package com.kritika.signalforge.event;
+import com.kritika.signalforge.observability.SignalForgeMetrics;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
 import java.time.Instant;
 import java.util.Map;
@@ -26,13 +28,13 @@ class EventConsumerTests {
 		EventMessage event = exampleEvent();
 		RuntimeException failure = new RuntimeException("Test processing failure");
 		doThrow(failure).when(processingService).process(event);
-		assertThatThrownBy(() -> new EventConsumer(processingService).consume(event)).isSameAs(failure);
+		assertThatThrownBy(() -> new EventConsumer(processingService, new SignalForgeMetrics(new SimpleMeterRegistry())).consume(event)).isSameAs(failure);
 	}
 
 	@Test
 	void acceptsEventMessage() {
 		EventMessage event = exampleEvent();
-		assertThatCode(() -> new EventConsumer(processingService).consume(event)).doesNotThrowAnyException();
+		assertThatCode(() -> new EventConsumer(processingService, new SignalForgeMetrics(new SimpleMeterRegistry())).consume(event)).doesNotThrowAnyException();
 		verify(processingService).process(event);
 	}
 
@@ -51,7 +53,7 @@ class EventConsumerTests {
 
 			// Record equality checks every field, including UUID and both Instant values.
 			assertThat(received).isEqualTo(original);
-			assertThatCode(() -> new EventConsumer(processingService).consume(received)).doesNotThrowAnyException();
+			assertThatCode(() -> new EventConsumer(processingService, new SignalForgeMetrics(new SimpleMeterRegistry())).consume(received)).doesNotThrowAnyException();
 			verify(processingService).process(received);
 		}
 	}

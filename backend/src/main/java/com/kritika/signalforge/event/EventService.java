@@ -1,5 +1,7 @@
 package com.kritika.signalforge.event;
 
+import com.kritika.signalforge.observability.SignalForgeMetrics;
+
 import com.kritika.signalforge.common.PageResponse;
 import com.kritika.signalforge.common.Pagination;
 import java.util.UUID;
@@ -9,11 +11,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class EventService {
+	private final SignalForgeMetrics metrics;
 
 	private final EventRepository eventRepository;
 	private final EventPublisher eventPublisher;
 
-	public EventService(EventRepository eventRepository, EventPublisher eventPublisher) {
+	public EventService(EventRepository eventRepository, EventPublisher eventPublisher, SignalForgeMetrics metrics) {
+		this.metrics = metrics;
 		this.eventRepository = eventRepository;
 		this.eventPublisher = eventPublisher;
 	}
@@ -27,6 +31,7 @@ public class EventService {
 		eventPublisher.publish(new EventMessage(saved.getId(), saved.getService(), saved.getType(),
 				saved.getSeverity(), saved.getMessage(), saved.getTimestamp(), saved.getReceivedAt()));
 
+		metrics.recordEventIngested(saved.getService(), saved.getType(), saved.getSeverity());
 		return toResponse(saved);
 	}
 

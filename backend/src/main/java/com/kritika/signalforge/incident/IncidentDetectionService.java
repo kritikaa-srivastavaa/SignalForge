@@ -1,5 +1,7 @@
 package com.kritika.signalforge.incident;
 
+import com.kritika.signalforge.observability.SignalForgeMetrics;
+
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayDeque;
@@ -17,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class IncidentDetectionService {
+	private final SignalForgeMetrics metrics;
 
 	private static final Logger log = LoggerFactory.getLogger(IncidentDetectionService.class);
 	private static final int THRESHOLD = 3;
@@ -32,7 +35,8 @@ public class IncidentDetectionService {
 
 	private final IncidentRepository incidentRepository;
 
-	public IncidentDetectionService(IncidentRepository incidentRepository) {
+	public IncidentDetectionService(IncidentRepository incidentRepository, SignalForgeMetrics metrics) {
+		this.metrics = metrics;
 		this.incidentRepository = incidentRepository;
 	}
 
@@ -60,6 +64,7 @@ public class IncidentDetectionService {
 
 		Incident incident = new Incident(event.id(), event.service(), event.type(), event.severity(), title);
 		Incident saved = incidentRepository.save(incident);
+		metrics.recordIncidentCreated(saved.getService(), saved.getType(), saved.getSeverity());
 		lastIncidentTimes.put(key, now);
 		log.info("Created incident id={} for event id={}", saved.getId(), event.id());
 		return Optional.of(saved);
