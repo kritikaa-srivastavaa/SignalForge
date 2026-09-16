@@ -20,3 +20,19 @@ Useful commands: `docker compose ps`, `docker compose logs -f backend`. Logs go 
 The dashboard refreshes every 5 seconds and defaults to the last 15 minutes. Send events through the existing API and allow at least two scrapes for rate/increase panels to populate. Totals are estimated counter increases over the selected range, not database row counts; newly created series may miss their first increment. Unused aggregate business metrics display zero, while grouped panels may show No data until a labeled series exists. Check the Prometheus target before interpreting zero as inactivity.
 
 Prometheus and Grafana use named volumes. Prometheus uses its default 15-day retention. Do not use `docker compose down -v` if you want to preserve local database and monitoring data.
+
+## Frontend development
+
+Use Node.js 24 LTS (or 22.12+) and start the backend stack with `docker compose up -d --build`. The frontend runs separately; it is not a Compose service.
+
+```powershell
+cd frontend
+npm install
+npm run dev
+```
+
+Open http://localhost:5173. Overview shows actual totals and recent records; Events and Incidents support exact-match filters and server pagination. Apply or clear filters to reset to page 1. Severity accepts arbitrary values, with HIGH/MEDIUM/LOW suggestions. Incident lifecycle actions are not included yet.
+
+The frontend calls http://localhost:8080 directly using `VITE_API_BASE_URL` (that is also the default). Copy `frontend/.env.example` to `frontend/.env` to change it, then restart Vite. No development proxy is used. Backend CORS permits only `http://localhost:5173` to GET `/events` and `/incidents`; a different frontend origin needs a deliberate CORS update. Do not use `127.0.0.1:5173` as the browser origin for this configuration.
+
+Run `npm run test` for behavioral tests and `npm run build` for strict TypeScript checking and a production build. No lint script is configured. Counts are snapshots refreshed through the Refresh button; Grafana remains the metrics dashboard.
