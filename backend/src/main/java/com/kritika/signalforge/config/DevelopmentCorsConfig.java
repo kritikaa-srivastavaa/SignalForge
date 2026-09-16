@@ -8,11 +8,15 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class DevelopmentCorsConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        // The read-only local dashboard needs only these two collection endpoints.
-        for (String path : new String[] {"/events", "/incidents"}) {
+        for (String path : new String[] {"/events", "/incidents", "/incidents/{id}"}) {
             registry.addMapping(path)
                     .allowedOrigins("http://localhost:5173")
                     .allowedMethods("GET");
+        }
+        for (String path : new String[] {"/incidents/{id}/acknowledge", "/incidents/{id}/resolve"}) {
+            registry.addMapping(path)
+                    .allowedOrigins("http://localhost:5173")
+                    .allowedMethods("PATCH");
         }
     }
 }

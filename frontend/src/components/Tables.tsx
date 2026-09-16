@@ -1,3 +1,4 @@
+import { Link } from 'react-router';
 import type { Event, Incident } from '../types';
 import { formatTime } from '../utils/format';
 import { SeverityBadge, StatusBadge } from './Shared';
@@ -12,8 +13,8 @@ export function EventsTable({ events, compact = false }: { events: Event[]; comp
 }
 export function IncidentsTable({ incidents, compact = false }: { incidents: Incident[]; compact?: boolean }) {
   return <div className="table-scroll" tabIndex={0} role="region" aria-label="Incidents table"><table>
-    <thead><tr><th scope="col">Service</th><th scope="col">Type</th><th scope="col">Severity</th><th scope="col">Status</th>{!compact && <th scope="col">Title</th>}<th scope="col">Created At</th></tr></thead>
+    <thead><tr><th scope="col">Service</th><th scope="col">Type</th><th scope="col">Severity</th><th scope="col">Status</th>{!compact && <th scope="col">Title</th>}<th scope="col">Created At</th><th scope="col">Details</th></tr></thead>
     <tbody>{incidents.map(incident => <tr key={incident.id}><td className="service" title={`Incident ID: ${incident.id}`}>{incident.service}</td><td className="mono">{incident.type}</td><td><SeverityBadge value={incident.severity} /></td><td><StatusBadge value={incident.status} /></td>
-      {!compact && <td><span className="truncate" title={incident.title} tabIndex={0}>{incident.title}</span></td>}<td className="date"><time dateTime={incident.createdAt}>{formatTime(incident.createdAt)}</time></td></tr>)}</tbody>
+      {!compact && <td><span className="truncate" title={incident.title} tabIndex={0}>{incident.title}</span></td>}<td className="date"><time dateTime={incident.createdAt}>{formatTime(incident.createdAt)}</time></td><td><Link className="text-link" to={`/incidents/${encodeURIComponent(incident.id)}`} aria-label={`View incident ${incident.id}`}>View</Link></td></tr>)}</tbody>
   </table></div>;
 }

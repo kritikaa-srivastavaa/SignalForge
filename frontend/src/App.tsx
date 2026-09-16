@@ -5,6 +5,7 @@ import { getIncidents } from './api/incidents';
 import { EventsTable, IncidentsTable } from './components/Tables';
 import { CollectionPage } from './pages/CollectionPage';
 import { Overview } from './pages/Overview';
+import { IncidentDetail } from './pages/IncidentDetail';
 
 function NavIcon({ kind }: { kind: 'overview' | 'events' | 'incidents' }) {
   return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
@@ -15,7 +16,7 @@ export function App() {
   const location = useLocation();
   const main = useRef<HTMLElement>(null);
   useEffect(() => {
-    const title = location.pathname === '/' ? 'Overview' : location.pathname === '/events' ? 'Events' : location.pathname === '/incidents' ? 'Incidents' : 'Not found';
+    const title = location.pathname === '/' ? 'Overview' : location.pathname === '/events' ? 'Events' : location.pathname.startsWith('/incidents/') ? 'Incident details' : location.pathname === '/incidents' ? 'Incidents' : 'Not found';
     document.title = `${title} · SignalForge`;
     main.current?.focus();
   }, [location.pathname]);
@@ -29,7 +30,7 @@ export function App() {
         <NavLink to="/events"><NavIcon kind="events" />Events</NavLink>
         <NavLink to="/incidents"><NavIcon kind="incidents" />Incidents</NavLink>
       </nav>
-      <div className="sidebar-footer"><span className="workspace-avatar" aria-hidden="true">L</span><div>Local workspace<small>Read-only console</small></div></div>
+      <div className="sidebar-footer"><span className="workspace-avatar" aria-hidden="true">L</span><div>Local workspace<small>Incident operations</small></div></div>
     </aside>
     <div className="workspace"><div className="topbar"><span>Operations console</span><span className="environment">LOCAL DEVELOPMENT</span></div>
       <main id="main" ref={main} tabIndex={-1}>
@@ -37,6 +38,7 @@ export function App() {
           <Route path="/" element={<Overview />} />
           <Route path="/events" element={<CollectionPage key="events" title="Events" description="Explore incoming telemetry, one event at a time." load={getEvents} table={rows => <EventsTable events={rows} />} />} />
           <Route path="/incidents" element={<CollectionPage key="incidents" title="Incidents" description="Track detected incidents and their current status." load={getIncidents} table={rows => <IncidentsTable incidents={rows} />} />} />
+          <Route path="/incidents/:id" element={<IncidentDetail />} />
           <Route path="*" element={<div className="state"><p className="eyebrow">404</p><h1>Page not found</h1><p>This page isn’t part of the workspace.</p><Link className="text-link" to="/">Back to Overview</Link></div>} />
         </Routes>
       </main><footer className="workspace-footer">SignalForge<span>Event intelligence. Operational clarity.</span></footer>

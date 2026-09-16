@@ -8,9 +8,16 @@ export class ApiError extends Error {
     this.status = status;
   }
 }
-export async function get<T>(
+
+async function request<T>(path: string, options: RequestInit): Promise<T> {
+  const response = await fetch(`${baseUrl}${path}`, options);
+  if (!response.ok) throw new ApiError(response.status);
+  return response.json() as Promise<T>;
+}
+
+export function get<T>(
   path: string,
-  parameters: Record<string, string | number | undefined>,
+  parameters: Record<string, string | number | undefined> = {},
   signal?: AbortSignal,
 ): Promise<T> {
   const query = new URLSearchParams();
@@ -19,7 +26,10 @@ export async function get<T>(
       query.set(key, String(value).trim());
     }
   }
-  const response = await fetch(`${baseUrl}${path}?${query}`, { signal });
-  if (!response.ok) throw new ApiError(response.status);
-  return response.json() as Promise<T>;
+  return request<T>(query.size ? `${path}?${query}` : path, { signal });
+}
+
+export function patch<T>(path: string, signal?: AbortSignal): Promise<T> {
+  // Lifecycle endpoints accept no request body.
+  return request<T>(path, { method: 'PATCH', signal });
 }
