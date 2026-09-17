@@ -1,3 +1,6 @@
+import { AuthProvider } from './auth/AuthProvider';
+import { AuthRoutes } from './auth/AuthRoutes';
+import { SessionIdentity } from './auth/SessionIdentity';
 import { NavLink, Route, Routes, Link, useLocation } from 'react-router';
 import { useEffect, useRef } from 'react';
 import { getEvents } from './api/events';
@@ -13,6 +16,10 @@ function NavIcon({ kind }: { kind: 'overview' | 'events' | 'incidents' }) {
   </svg>;
 }
 export function App() {
+  return <AuthProvider><AuthRoutes><Console /></AuthRoutes></AuthProvider>;
+}
+
+function Console() {
   const location = useLocation();
   const main = useRef<HTMLElement>(null);
   useEffect(() => {
@@ -32,7 +39,7 @@ export function App() {
       </nav>
       <div className="sidebar-footer"><span className="workspace-avatar" aria-hidden="true">L</span><div>Local workspace<small>Incident operations</small></div></div>
     </aside>
-    <div className="workspace"><div className="topbar"><span>Operations console</span><span className="environment">LOCAL DEVELOPMENT</span></div>
+    <div className="workspace"><div className="topbar"><span>Operations console</span><SessionIdentity /></div>
       <main id="main" ref={main} tabIndex={-1}>
         <Routes>
           <Route path="/" element={<Overview />} />

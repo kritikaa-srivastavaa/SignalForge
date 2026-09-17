@@ -1,4 +1,13 @@
-import { act, fireEvent, render, screen, within } from '@testing-library/react';
+import type { ReactNode } from 'react';
+// These business tests run inside an authenticated boundary; Auth.test covers real state transitions.
+vi.mock('../auth/AuthProvider', () => ({
+  AuthProvider: ({ children }: { children: ReactNode }) => children,
+  useAuth: () => ({
+    user: { id: 'test-user', email: 'test@example.com', displayName: 'Test User' },
+    loading: false, error: null, logout: vi.fn(), refreshUser: vi.fn(),
+  }),
+}));
+import { act, fireEvent, render, screen, within, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 import { beforeEach, expect, it, vi } from 'vitest';
@@ -18,7 +27,10 @@ const updated = (status: Incident['status']) => ({ ...incident, status });
 const page = (content: Incident[]) => ({ content, page: 0, size: 20, totalElements: content.length, totalPages: 1, first: true, last: true });
 const show = (path = '/incidents/' + incident.id) => render(<MemoryRouter initialEntries={[path]}><App /></MemoryRouter>);
 const patches = () => fetchMock.mock.calls.filter(([, options]) => options?.method === 'PATCH');
-beforeEach(() => { fetchMock.mockReset(); vi.stubGlobal('fetch', fetchMock); });
+beforeEach(() => { fetchMock.mockReset(); vi.stubGlobal('fetch', (input: RequestInfo | URL, options?: RequestInit) =>
+  String(input).endsWith('/auth/csrf')
+    ? Promise.resolve(new Response(JSON.stringify({ headerName: 'X-CSRF-TOKEN', token: 'test-csrf' })))
+    : fetchMock(input, options)); });
 
 it('loads real detail fields and offers both OPEN actions', async () => {
   fetchMock.mockResolvedValue(response(incident));
@@ -106,7 +118,7 @@ it.each(['acknowledge', 'resolve'] as const)('blocks duplicate %s requests and w
   }
   fireEvent.click(button);
   fireEvent.click(button);
-  expect(patches()).toHaveLength(1);
+  await waitFor(() => expect(patches()).toHaveLength(1));
   expect(button).toBeDisabled();
   expect(screen.getByText('OPEN')).toBeInTheDocument();
   expect(screen.getByRole('button', { name: 'Refresh' })).toBeDisabled();

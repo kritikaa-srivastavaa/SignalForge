@@ -165,3 +165,18 @@ input::placeholder { color: #758178; }
   .incident-actions { padding: 16px; }
   .detail-heading { flex-wrap: wrap; }
 }
+/* Authentication uses the existing console palette. */
+.auth-page { display: grid; place-items: center; min-height: 100vh; margin: 0; padding: 24px; }
+.auth-card { width: min(100%, 420px); padding: 30px; background: white; border: 1px solid var(--border); border-radius: 8px; }
+.auth-card form { display: grid; gap: 16px; margin-top: 24px; }
+.auth-card label { display: grid; gap: 8px; font-size: 13px; }
+.auth-card input { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 4px; font: inherit; }
+.auth-card [role="alert"] { color: var(--danger); }
+.session-identity { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.session-identity small { display: block; font-size: 10px; overflow-wrap: anywhere; }
+.topbar { min-height: 64px; height: auto; padding-top: 10px; padding-bottom: 10px; gap: 16px; }
+@media (max-width: 550px) {
+  .session-identity { gap: 6px; }
+  .session-identity > span { max-width: 150px; }
+  .auth-card { padding: 22px; }
+}

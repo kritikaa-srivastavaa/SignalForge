@@ -36,6 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest(properties = {"spring.kafka.listener.auto-startup=false", "spring.kafka.admin.auto-create=false"})
+@org.springframework.security.test.context.support.WithMockUser
 @AutoConfigureMockMvc
 @Transactional
 class EventControllerIntegrationTests {
@@ -74,7 +75,7 @@ class EventControllerIntegrationTests {
 				""";
 		long before = eventRepository.count();
 		for (int i = 0; i < 10; i++) {
-			mockMvc.perform(post("/events").with(http -> { http.setRemoteAddr("192.0.2.1"); return http; })
+			mockMvc.perform(post("/events").with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf()).with(http -> { http.setRemoteAddr("192.0.2.1"); return http; })
 					.contentType(MediaType.APPLICATION_JSON).content(request))
 					.andExpect(status().isCreated());
 		}
@@ -82,7 +83,7 @@ class EventControllerIntegrationTests {
 		verify(eventPublisher, times(10)).publish(any(EventMessage.class));
 		clearInvocations(eventPublisher);
 
-		mockMvc.perform(post("/events").with(http -> { http.setRemoteAddr("192.0.2.1"); return http; })
+		mockMvc.perform(post("/events").with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf()).with(http -> { http.setRemoteAddr("192.0.2.1"); return http; })
 				.contentType(MediaType.APPLICATION_JSON).content(request))
 				.andExpect(status().isTooManyRequests());
 		entityManager.flush();
@@ -94,7 +95,7 @@ class EventControllerIntegrationTests {
 				.andExpect(status().isOk());
 		mockMvc.perform(get("/incidents").with(http -> { http.setRemoteAddr("192.0.2.1"); return http; }))
 				.andExpect(status().isOk());
-		mockMvc.perform(post("/events").with(http -> { http.setRemoteAddr("192.0.2.2"); return http; })
+		mockMvc.perform(post("/events").with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf()).with(http -> { http.setRemoteAddr("192.0.2.2"); return http; })
 				.contentType(MediaType.APPLICATION_JSON).content(request))
 				.andExpect(status().isCreated());
 		assertThat(eventRepository.count()).isEqualTo(before + 11);
@@ -157,7 +158,7 @@ class EventControllerIntegrationTests {
 				}
 				""";
 
-		String responseBody = mockMvc.perform(post("/events")
+		String responseBody = mockMvc.perform(post("/events").with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf())
 				.contentType(MediaType.APPLICATION_JSON).content(request))
 				.andExpect(status().isCreated())
 				.andExpect(jsonPath("$.id").isNotEmpty())
@@ -208,7 +209,7 @@ class EventControllerIntegrationTests {
 				}
 				""";
 
-		mockMvc.perform(post("/events")
+		mockMvc.perform(post("/events").with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf())
 				.contentType(MediaType.APPLICATION_JSON).content(request))
 				.andExpect(status().isBadRequest());
 

@@ -5,10 +5,12 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 import json
 import math
+import os
+from http.cookiejar import CookieJar
 from pathlib import Path
 import time
 from urllib.error import HTTPError, URLError
-from urllib.request import Request, urlopen
+from urllib.request import Request, urlopen, build_opener, HTTPCookieProcessor
 import uuid
 
 
@@ -44,13 +46,13 @@ def summarize(results, elapsed):
     }
 
 
-def request(url, method="GET", payload=None, timeout=200):
+def request(url, method="GET", payload=None, timeout=200, *, headers=None, opener=None):
     start = time.perf_counter()
     body = None if payload is None else json.dumps(payload).encode("utf-8")
-    headers = {} if body is None else {"Content-Type": "application/json"}
+    headers = {**({} if body is None else {"Content-Type": "application/json"}), **(headers or {})}
     try:
         try:
-            response = urlopen(Request(url, data=body, headers=headers, method=method), timeout=timeout)
+            response = (opener or urlopen)(Request(url, data=body, headers=headers, method=method), timeout=timeout)
         except HTTPError as error:
             response = error  # HTTP failures are responses, not transport failures.
         with response:
@@ -66,8 +68,57 @@ def request(url, method="GET", payload=None, timeout=200):
                 "error": type(error).__name__}
 
 
+
+class SessionClient:
+    """Explicit local credentials; cookies and CSRF tokens stay in memory."""
+    def __init__(self, base_url, email, password):
+        self.base_url = base_url.rstrip("/")
+        self.email = email
+        self.password = password
+        self.opener = build_opener(HTTPCookieProcessor(CookieJar()))
+        self.csrf_headers = {}
+
+    @classmethod
+    def from_environment(cls, base_url="http://localhost:8080"):
+        email = os.environ.get("SIGNALFORGE_AUTH_EMAIL")
+        password = os.environ.get("SIGNALFORGE_AUTH_PASSWORD")
+        if not email or not password:
+            raise ValueError("Set SIGNALFORGE_AUTH_EMAIL and SIGNALFORGE_AUTH_PASSWORD for a registered local account")
+        client = cls(base_url, email, password)
+        client.login()
+        return client
+
+    def refresh_csrf(self):
+        result = request(self.base_url + "/auth/csrf", opener=self.opener.open)
+        if result["status"] != 200:
+            raise ValueError("Unable to obtain CSRF token")
+        token = result["response"]
+        self.csrf_headers = {token["headerName"]: token["token"]}
+
+    def login(self):
+        self.refresh_csrf()
+        result = self.request(self.base_url + "/auth/login", "POST",
+                              {"email": self.email, "password": self.password})
+        if result["status"] != 200:
+            raise ValueError("Authentication failed; check the supplied local credentials and backend")
+        # Successful authentication rotates both the session ID and CSRF token.
+        self.refresh_csrf()
+
+    def request(self, url, method="GET", payload=None, timeout=200):
+        if not (url == self.base_url or url.startswith(self.base_url + "/")):
+            raise ValueError("Authenticated requests must use the configured backend URL")
+        headers = self.csrf_headers if method not in ("GET", "HEAD", "OPTIONS") else {}
+        return request(url, method, payload, timeout, headers=headers, opener=self.opener.open)
+
+    def logout(self):
+        result = self.request(self.base_url + "/auth/logout", "POST")
+        if result["status"] != 204:
+            raise ValueError("Logout failed")
+        self.csrf_headers = {}
+
+
 def run(total=20, concurrency=4, service=None, event_type="LOAD_TEST", severity="HIGH",
-        base_url="http://localhost:8080", timeout=200, timestamp=None):
+        base_url="http://localhost:8080", timeout=200, timestamp=None, request_fn=request):
     if total < 1 or concurrency < 1 or timeout <= 0:
         raise ValueError("total, concurrency and timeout must be positive")
     service = service or "load-validation-" + uuid.uuid4().hex[:12]
@@ -77,7 +128,7 @@ def run(total=20, concurrency=4, service=None, event_type="LOAD_TEST", severity=
         payload = {"service": service, "type": event_type, "severity": severity,
                    "message": f"{run_id}-{index}",
                    "timestamp": timestamp or datetime.now(timezone.utc).isoformat()}
-        result = request(base_url.rstrip("/") + "/events", "POST", payload, timeout)
+        result = request_fn(base_url.rstrip("/") + "/events", "POST", payload, timeout)
         # Keep request identities and accepted IDs for asynchronous/database reconciliation.
         return {"request": payload, **result}
 
@@ -100,8 +151,9 @@ def main():
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
     try:
+        client = SessionClient.from_environment(args.base_url)
         result = run(args.requests, args.concurrency, args.service, args.event_type,
-                     args.severity, args.base_url, args.timeout)
+                     args.severity, args.base_url, args.timeout, request_fn=client.request)
     except ValueError as error:
         parser.error(str(error))
     if args.output:

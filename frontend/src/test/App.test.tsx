@@ -1,3 +1,12 @@
+import type { ReactNode } from 'react';
+// These business tests run inside an authenticated boundary; Auth.test covers real state transitions.
+vi.mock('../auth/AuthProvider', () => ({
+  AuthProvider: ({ children }: { children: ReactNode }) => children,
+  useAuth: () => ({
+    user: { id: 'test-user', email: 'test@example.com', displayName: 'Test User' },
+    loading: false, error: null, logout: vi.fn(), refreshUser: vi.fn(),
+  }),
+}));
 import { render, screen, within, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
@@ -30,7 +39,10 @@ function requests() {
 function show(path: string) {
   return render(<MemoryRouter initialEntries={[path]}><App /></MemoryRouter>);
 }
-beforeEach(() => { fetchMock.mockReset(); vi.stubGlobal('fetch', fetchMock); });
+beforeEach(() => { fetchMock.mockReset(); vi.stubGlobal('fetch', (input: RequestInfo | URL, options?: RequestInit) =>
+  String(input).endsWith('/auth/csrf')
+    ? Promise.resolve(new Response(JSON.stringify({ headerName: 'X-CSRF-TOKEN', token: 'test-csrf' })))
+    : fetchMock(input, options)); });
 
 describe('Overview', () => {
   it('renders actual page totals and recent rows with five bounded requests', async () => {

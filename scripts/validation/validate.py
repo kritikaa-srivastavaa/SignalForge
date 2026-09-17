@@ -13,7 +13,8 @@ import time
 from urllib.parse import urlencode
 import uuid
 
-from load import request, run
+from load import request, run as load_run, SessionClient
+from functools import partial
 
 ROOT = Path(__file__).resolve().parents[2]
 METRICS = [
@@ -149,6 +150,11 @@ def main():
                         help="Explicitly authorize temporary backend/Kafka/PostgreSQL interruptions")
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
+    try:
+        client = SessionClient.from_environment(API)
+    except ValueError as error:
+        parser.error(str(error))
+    run = partial(load_run, request_fn=client.request)
     prefix = "load-validation-" + datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ") + "-" + uuid.uuid4().hex[:6]
     evidence = {"run": prefix, "started_utc": datetime.now(timezone.utc).isoformat(), "scenarios": {}}
     stopped = set()
@@ -213,6 +219,7 @@ def main():
             restart_start = time.perf_counter()
             compose("restart", "backend")
             wait_healthy("backend")
+            client.login()  # Process-local sessions are invalid after a backend restart.
             recovery = time.perf_counter() - restart_start
             metrics_after_restart = after_scrape()
             survived = database()
@@ -273,7 +280,7 @@ def main():
             try:
                 with ThreadPoolExecutor(max_workers=3) as pool:
                     health = pool.submit(request, API + "/actuator/health", timeout=50)
-                    get = pool.submit(request, API + "/events", timeout=50)
+                    get = pool.submit(client.request, API + "/events", timeout=50)
                     post = pool.submit(run, 1, 1, pg_service, timeout=50)
                     record("postgres_outage", {"health": health.result(), "get": get.result(), "post": post.result(),
                                                "metrics_before": pg_metrics_before, "metrics_after": after_scrape()})

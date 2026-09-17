@@ -19,6 +19,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest(properties = {"spring.kafka.listener.auto-startup=false", "spring.kafka.admin.auto-create=false"})
+@org.springframework.security.test.context.support.WithMockUser
 @AutoConfigureMockMvc
 @Transactional
 class IncidentLifecycleIntegrationTests {
@@ -36,7 +37,7 @@ class IncidentLifecycleIntegrationTests {
 	})
 	void allowedAndIdempotentTransitions(IncidentStatus initial, String action, IncidentStatus expected) throws Exception {
 		Incident incident = fixture(initial);
-		mvc.perform(patch("/incidents/{id}/{action}", incident.getId(), action))
+		mvc.perform(patch("/incidents/{id}/{action}", incident.getId(), action).with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf()))
 				.andExpect(status().isOk()).andExpect(jsonPath("$.status").value(expected.name()))
 				.andExpect(jsonPath("$.version").doesNotExist());
 		entityManager.flush();
@@ -47,7 +48,7 @@ class IncidentLifecycleIntegrationTests {
 	@Test
 	void resolvedCannotBeAcknowledged() throws Exception {
 		Incident incident = fixture(IncidentStatus.RESOLVED);
-		mvc.perform(patch("/incidents/{id}/acknowledge", incident.getId())).andExpect(status().isConflict());
+		mvc.perform(patch("/incidents/{id}/acknowledge", incident.getId()).with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf())).andExpect(status().isConflict());
 		entityManager.clear();
 		assertThat(repository.findById(incident.getId()).orElseThrow().getStatus()).isEqualTo(IncidentStatus.RESOLVED);
 	}
@@ -55,7 +56,7 @@ class IncidentLifecycleIntegrationTests {
 	@ParameterizedTest
 	@ValueSource(strings = {"acknowledge", "resolve"})
 	void missingIncidentReturns404(String action) throws Exception {
-		mvc.perform(patch("/incidents/{id}/{action}", UUID.randomUUID(), action)).andExpect(status().isNotFound());
+		mvc.perform(patch("/incidents/{id}/{action}", UUID.randomUUID(), action).with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf())).andExpect(status().isNotFound());
 	}
 
 	@ParameterizedTest

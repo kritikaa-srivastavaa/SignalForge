@@ -8,15 +8,21 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class DevelopmentCorsConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        for (String path : new String[] {"/events", "/incidents", "/incidents/{id}"}) {
-            registry.addMapping(path)
-                    .allowedOrigins("http://localhost:5173")
-                    .allowedMethods("GET");
+        allow(registry, "/events", "GET", "POST");
+        for (String path : new String[] {"/events/{id}", "/incidents", "/incidents/{id}", "/auth/me", "/auth/csrf"}) {
+            allow(registry, path, "GET");
         }
         for (String path : new String[] {"/incidents/{id}/acknowledge", "/incidents/{id}/resolve"}) {
-            registry.addMapping(path)
-                    .allowedOrigins("http://localhost:5173")
-                    .allowedMethods("PATCH");
+            allow(registry, path, "PATCH");
         }
+        for (String path : new String[] {"/auth/register", "/auth/login", "/auth/logout"}) {
+            allow(registry, path, "POST");
+        }
+    }
+
+    private void allow(CorsRegistry registry, String path, String... methods) {
+        registry.addMapping(path).allowedOrigins("http://localhost:5173")
+                .allowedMethods(methods).allowedHeaders("Content-Type", "X-CSRF-TOKEN")
+                .allowCredentials(true);
     }
 }

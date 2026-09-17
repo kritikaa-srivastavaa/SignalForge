@@ -33,7 +33,7 @@ npm run dev
 
 Open http://localhost:5173. Overview shows actual totals and recent records; Events and Incidents support exact-match filters and server pagination. Apply or clear filters to reset to page 1. Severity accepts arbitrary values, with HIGH/MEDIUM/LOW suggestions. Use View on an incident to open its detail page. OPEN incidents can be acknowledged or resolved; ACKNOWLEDGED incidents can be resolved. Resolve requires confirmation. RESOLVED incidents have no further actions. Changes use the server response; conflicts load the latest state without automatically retrying. Refresh checks for external changes, and returning to Incidents or Overview fetches current records/counts.
 
-In host development, the frontend calls http://localhost:8080 directly using `VITE_API_BASE_URL` (that is also the default). Copy `frontend/.env.example` to `frontend/.env` to change it, then restart Vite. No development proxy is used. Backend CORS permits only `http://localhost:5173` to GET `/events`, `/incidents`, and `/incidents/{id}`, and PATCH `/incidents/{id}/acknowledge` or `/incidents/{id}/resolve`; a different frontend origin needs a deliberate CORS update. Do not use `127.0.0.1:5173` as the browser origin for this configuration.
+In host development, the frontend calls http://localhost:8080 directly using `VITE_API_BASE_URL` (that is also the default). Copy `frontend/.env.example` to `frontend/.env` to change it, then restart Vite. No development proxy is used. Backend CORS permits only `http://localhost:5173`, with credentials, for the application GET/POST/PATCH and authentication endpoints described in the [authentication note](docs/security/AUTHENTICATION.md); a different frontend origin needs a deliberate CORS update. Do not use `127.0.0.1:5173` as the browser origin for this configuration.
 
 Run `npm run test` for behavioral tests and `npm run build` for strict TypeScript checking and a production build. No lint script is configured. Counts are snapshots refreshed through the Refresh button; Grafana remains the metrics dashboard.
 
@@ -44,3 +44,15 @@ To return to the containerized UI, stop Vite and run `docker compose up -d --bui
 ## Validation / Engineering Evidence
 
 See [the measured load, failure, and scaling report](docs/validation/VALIDATION.md) for results, limitations, and reproduction commands. The lightweight Python standard-library tools live in `scripts/validation/`; stop/start experiments require an explicit `--include-failures` flag. These local checks do not establish production throughput, high availability, or multi-instance detector correctness.
+
+## Authentication
+
+Open http://localhost:5173, create an account, then log in with email/password. Registration does not automatically log you in. Spring Security uses BCrypt passwords and an HttpOnly, SameSite=Lax session cookie; Logout invalidates the server session. Event and incident APIs and console routes require authentication. Healthchecks and the local Prometheus scrape remain public.
+
+The Docker UI uses the existing same-origin Nginx /api proxy. Host Vite development uses localhost:8080 with explicit localhost:5173 credentialed CORS. The API client fetches a CSRF token before each mutation and includes cookies; it never stores auth tokens in localStorage/sessionStorage.
+
+Sessions are process-local: backend restart logs users out, and multiple backend instances would need sticky routing or shared session storage. Local HTTP cookies are not Secure; HTTPS deployments must enable Secure cookies. All authenticated users currently have equal application permissions; RBAC and access governance are not implemented.
+
+Prompt 23 authentication answers: **"Who are you?"** Prompt 24 authorization will answer: **"What are you allowed to do?"**
+
+See [Authentication architecture and verification](docs/security/AUTHENTICATION.md) for API contracts, CSRF/CORS, password rules, test results and validation-tool credentials. Prompt 22 scripts now require SIGNALFORGE_AUTH_EMAIL and SIGNALFORGE_AUTH_PASSWORD supplied through the environment; never commit them.

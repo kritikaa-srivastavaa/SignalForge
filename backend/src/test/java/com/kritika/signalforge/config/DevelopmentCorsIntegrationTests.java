@@ -18,6 +18,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest(properties = {"spring.kafka.listener.auto-startup=false", "spring.kafka.admin.auto-create=false"})
+@org.springframework.security.test.context.support.WithMockUser
 @AutoConfigureMockMvc
 @Transactional
 class DevelopmentCorsIntegrationTests {
@@ -41,14 +42,15 @@ class DevelopmentCorsIntegrationTests {
     }
 
     @Test
-    void allowsCollectionReadPreflightButNotEventCreation() throws Exception {
+    void allowsCollectionReadAndEventCreationPreflight() throws Exception {
         mvc.perform(options("/incidents").header("Origin", "http://localhost:5173")
                         .header("Access-Control-Request-Method", "GET"))
                 .andExpect(status().isOk())
                 .andExpect(header().string("Access-Control-Allow-Methods", "GET"));
         mvc.perform(options("/events").header("Origin", "http://localhost:5173")
                         .header("Access-Control-Request-Method", "POST"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isOk())
+                .andExpect(header().string("Access-Control-Allow-Credentials", "true"));
     }
     @Test
     void allowsDetailAndLifecyclePreflights() throws Exception {
@@ -71,13 +73,13 @@ class DevelopmentCorsIntegrationTests {
         mvc.perform(get(path).header("Origin", "http://localhost:5173"))
                 .andExpect(status().isOk())
                 .andExpect(header().string("Access-Control-Allow-Origin", "http://localhost:5173"));
-        mvc.perform(patch(path + "/acknowledge").header("Origin", "http://localhost:5173"))
+        mvc.perform(patch(path + "/acknowledge").with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf()).header("Origin", "http://localhost:5173"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("ACKNOWLEDGED"))
                 .andExpect(header().string("Access-Control-Allow-Origin", "http://localhost:5173"));
-        mvc.perform(patch(path + "/resolve").header("Origin", "http://localhost:5173"))
+        mvc.perform(patch(path + "/resolve").with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf()).header("Origin", "http://localhost:5173"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("RESOLVED"))
                 .andExpect(header().string("Access-Control-Allow-Origin", "http://localhost:5173"));
-        mvc.perform(patch(path + "/acknowledge").header("Origin", "http://localhost:5173"))
+        mvc.perform(patch(path + "/acknowledge").with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf()).header("Origin", "http://localhost:5173"))
                 .andExpect(status().isConflict())
                 .andExpect(header().string("Access-Control-Allow-Origin", "http://localhost:5173"));
     }
@@ -93,7 +95,7 @@ class DevelopmentCorsIntegrationTests {
                             .header("Access-Control-Request-Method", "PATCH"))
                     .andExpect(status().isForbidden())
                     .andExpect(header().doesNotExist("Access-Control-Allow-Origin"));
-            mvc.perform(patch(path + "/" + action).header("Origin", "https://untrusted.example"))
+            mvc.perform(patch(path + "/" + action).with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf()).header("Origin", "https://untrusted.example"))
                     .andExpect(status().isForbidden())
                     .andExpect(header().doesNotExist("Access-Control-Allow-Origin"));
         }

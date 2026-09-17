@@ -23,6 +23,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest(properties = {"spring.kafka.listener.auto-startup=false", "spring.kafka.admin.auto-create=false"})
+@org.springframework.security.test.context.support.WithMockUser
 @AutoConfigureMockMvc
 @AutoConfigureMetrics
 class MetricsIntegrationTests {
@@ -51,12 +52,12 @@ class MetricsIntegrationTests {
 				{"service":"%s","type":"ERROR","severity":"LOW","message":"Test","timestamp":"2026-09-16T12:00:00Z"}
 				""".formatted(service);
 		double rejectedBefore = total("signalforge.ingestion.rate_limit.rejections");
-		mvc.perform(post("/events").contentType(MediaType.APPLICATION_JSON).content(json)).andExpect(status().isCreated());
+		mvc.perform(post("/events").with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf()).contentType(MediaType.APPLICATION_JSON).content(json)).andExpect(status().isCreated());
 		assertThat(count("signalforge.events.ingested")).isEqualTo(1);
-		mvc.perform(post("/events").contentType(MediaType.APPLICATION_JSON).content(json)).andExpect(status().isTooManyRequests());
+		mvc.perform(post("/events").with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf()).contentType(MediaType.APPLICATION_JSON).content(json)).andExpect(status().isTooManyRequests());
 		assertThat(count("signalforge.events.ingested")).isEqualTo(1);
 		assertThat(total("signalforge.ingestion.rate_limit.rejections")).isEqualTo(rejectedBefore + 1);
-		mvc.perform(post("/events").contentType(MediaType.APPLICATION_JSON).content(json.replace("\"message\":\"Test\"", "\"message\":\"\""))).andExpect(status().isBadRequest());
+		mvc.perform(post("/events").with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf()).contentType(MediaType.APPLICATION_JSON).content(json.replace("\"message\":\"Test\"", "\"message\":\"\""))).andExpect(status().isBadRequest());
 		assertThat(count("signalforge.events.ingested")).isEqualTo(1);
 		assertThat(jdbc.queryForObject("select count(*) from events where service = ?", Long.class, service)).isEqualTo(1);
 		verify(publisher).publish(any());

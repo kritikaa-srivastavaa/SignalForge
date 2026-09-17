@@ -39,3 +39,10 @@ export interface PageQuery {
 }
 export type EventQuery = PageQuery & Partial<Pick<Filters, 'service' | 'type' | 'severity'>>;
 export type IncidentQuery = EventQuery & { status?: IncidentStatus | '' };
+
+export interface User {
+  id: string;
+  email: string;
+  displayName: string;
+  createdAt: string;
+}

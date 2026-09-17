@@ -19,6 +19,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest(properties = {"spring.kafka.listener.auto-startup=false", "spring.kafka.admin.auto-create=false"})
+@org.springframework.security.test.context.support.WithMockUser
 @AutoConfigureMockMvc
 @Transactional
 class IncidentControllerIntegrationTests {
