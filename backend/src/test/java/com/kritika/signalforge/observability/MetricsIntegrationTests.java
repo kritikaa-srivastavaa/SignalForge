@@ -99,6 +99,26 @@ class MetricsIntegrationTests {
 		mvc.perform(get("/actuator/health")).andExpect(status().isOk());
 	}
 
+	@Test
+	void incidentCounterUsesThePrometheusNameQueriedByGrafana() throws Exception {
+		metrics.recordIncidentCreated(service, "ERROR", "HIGH");
+		String scrape = mvc.perform(get("/actuator/prometheus").accept(MediaType.TEXT_PLAIN))
+				.andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+		// Prometheus reserves the _created suffix; the registry exports incidents_total.
+		String dashboard = java.nio.file.Files.readString(java.nio.file.Path.of(
+				System.getProperty("basedir", "."), "..", "infrastructure", "grafana",
+				"provisioning", "dashboards", "signalforge-dashboard.json"));
+		var incidentMetricNames = java.util.regex.Pattern.compile("signalforge_incidents[a-z_]*")
+				.matcher(dashboard).results().map(java.util.regex.MatchResult::group).distinct().toList();
+		assertThat(incidentMetricNames).isNotEmpty();
+		for (String name : incidentMetricNames) {
+			assertThat(scrape).contains("# TYPE " + name + " counter");
+		}
+		assertThat(scrape).contains("# TYPE signalforge_incidents_total counter")
+				.doesNotContain("signalforge_incidents_created_total");
+		assertThat(scrape.lines().filter(line -> line.startsWith("signalforge_incidents_total{")
+				&& line.contains(service))).singleElement().asString().endsWith(" 1.0");
+	}
 	private EventMessage event(int seconds) {
 		UUID id = UUID.randomUUID();
 		ids.add(id);

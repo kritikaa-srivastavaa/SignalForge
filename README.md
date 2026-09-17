@@ -40,3 +40,7 @@ Run `npm run test` for behavioral tests and `npm run build` for strict TypeScrip
 The frontend Dockerfile uses a Node 24 build stage with `npm ci` and an Nginx-only runtime. Its build argument `VITE_API_BASE_URL` defaults to `/api`; Vite compiles that value into the bundle. Runtime environment changes do not alter it: rebuild the image to change the value. Local `.env*` files are excluded from the Docker build. No backend CORS extension is needed for the same-origin container workflow.
 
 To return to the containerized UI, stop Vite and run `docker compose up -d --build`. Useful verification commands are `docker compose config` and `docker compose build frontend`. The host URLs remain UI **:5173**, backend API **:8080**, Prometheus **:9090**, and Grafana **:3000**.
+
+## Validation / Engineering Evidence
+
+See [the measured load, failure, and scaling report](docs/validation/VALIDATION.md) for results, limitations, and reproduction commands. The lightweight Python standard-library tools live in `scripts/validation/`; stop/start experiments require an explicit `--include-failures` flag. These local checks do not establish production throughput, high availability, or multi-instance detector correctness.

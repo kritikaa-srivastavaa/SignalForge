@@ -123,7 +123,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(increase(signalforge_incidents_created_total{job=\"signalforge\"}[$__range])) or vector(0)",
+          "expr": "sum(increase(signalforge_incidents_total{job=\"signalforge\"}[$__range])) or vector(0)",
           "instant": true,
           "range": false,
           "legendFormat": "",
@@ -311,7 +311,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum by (severity) (increase(signalforge_incidents_created_total{job=\"signalforge\"}[$__range]))",
+          "expr": "sum by (severity) (increase(signalforge_incidents_total{job=\"signalforge\"}[$__range]))",
           "instant": false,
           "range": true,
           "legendFormat": "{{severity}}",
