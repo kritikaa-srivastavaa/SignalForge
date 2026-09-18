@@ -1,0 +1,25 @@
+# Generated output and local tooling
+node_modules/
+dist/
+coverage/
+*.log
+logs/
+.git/
+.vscode/
+.idea/
+*.tsbuildinfo
+
+# Local environment values must not enter the production build.
+.env
+.env.*
+!.env.example
+
+# Temporary and OS files
+*.tmp
+*.temp
+*.swp
+*.bak
+*~
+.DS_Store
+Thumbs.db
+desktop.ini

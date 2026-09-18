@@ -1,0 +1,1181 @@
+{
+  "run": "load-validation-20260917T043823Z-3e27a8",
+  "started_utc": "2026-09-17T04:38:23.585196+00:00",
+  "scenarios": {
+    "burst": {
+      "service": "load-validation-20260917T043823Z-3e27a8-burst",
+      "concurrency": 4,
+      "attempted": 20,
+      "accepted_201": 10,
+      "rejected_429": 10,
+      "status_counts": {
+        "201": 10,
+        "429": 10
+      },
+      "request_failures": 0,
+      "elapsed_seconds": 0.47591919999103993,
+      "accepted_per_second": 21.01197009952166,
+      "latency_ms": {
+        "min": 29.34460004325956,
+        "average": 91.93018000514712,
+        "p50": 104.94745001778938,
+        "p95": 139.77995499735698,
+        "p99": 141.12143103731796,
+        "max": 141.4568000473082
+      },
+      "accepted_latency_ms": {
+        "min": 81.39410003786907,
+        "average": 119.73979001049884,
+        "p50": 125.45595000847243,
+        "p95": 140.6625050236471,
+        "p99": 141.29794104257599,
+        "max": 141.4568000473082
+      },
+      "results": [
+        {
+          "request": {
+            "service": "load-validation-20260917T043823Z-3e27a8-burst",
+            "type": "LOAD_TEST",
+            "severity": "HIGH",
+            "message": "f6bca056b429-0",
+            "timestamp": "2026-09-17T04:39:30.222201+00:00"
+          },
+          "status": 201,
+          "latency_ms": 111.99579999083653,
+          "response": {
+            "id": "9490590d-08f6-47ad-a3c0-cadeda222fb3",
+            "service": "load-validation-20260917T043823Z-3e27a8-burst",
+            "type": "LOAD_TEST",
+            "severity": "HIGH",
+            "message": "f6bca056b429-0",
+            "timestamp": "2026-09-17T04:39:30.222201Z",
+            "receivedAt": "2026-09-17T04:39:30.240477333Z"
+          }
+        },
+        {
+          "request": {
+            "service": "load-validation-20260917T043823Z-3e27a8-burst",
+            "type": "LOAD_TEST",
+            "severity": "HIGH",
+            "message": "f6bca056b429-1",
+            "timestamp": "2026-09-17T04:39:30.222201+00:00"
+          },
+          "status": 201,
+          "latency_ms": 129.2696000309661,
+          "response": {
+            "id": "11bd7f1e-7f8a-4c68-8ac2-fdea72ddc8aa",
+            "service": "load-validation-20260917T043823Z-3e27a8-burst",
+            "type": "LOAD_TEST",
+            "severity": "HIGH",
+            "message": "f6bca056b429-1",
+            "timestamp": "2026-09-17T04:39:30.222201Z",
+            "receivedAt": "2026-09-17T04:39:30.247307178Z"
+          }
+        },
+        {
+          "request": {
+            "service": "load-validation-20260917T043823Z-3e27a8-burst",
+            "type": "LOAD_TEST",
+            "severity": "HIGH",
+            "message": "f6bca056b429-2",
+            "timestamp": "2026-09-17T04:39:30.222201+00:00"
+          },
+          "status": 201,
+          "latency_ms": 133.61439999425784,
+          "response": {
+            "id": "e400b0ea-cd3c-4531-aaca-fafc9b3b3497",
+            "service": "load-validation-20260917T043823Z-3e27a8-burst",
+            "type": "LOAD_TEST",
+            "severity": "HIGH",
+            "message": "f6bca056b429-2",
+            "timestamp": "2026-09-17T04:39:30.222201Z",
+            "receivedAt": "2026-09-17T04:39:30.275098950Z"
+          }
+        },
+        {
+          "request": {
+            "service": "load-validation-20260917T043823Z-3e27a8-burst",
+            "type": "LOAD_TEST",
+            "severity": "HIGH",
+            "message": "f6bca056b429-3",
+            "timestamp": "2026-09-17T04:39:30.222201+00:00"
+          },
+          "status": 201,
+          "latency_ms": 141.4568000473082,
+          "response": {
+            "id": "07e63253-7d35-421e-8618-c69b5186fce6",
+            "service": "load-validation-20260917T043823Z-3e27a8-burst",
+            "type": "LOAD_TEST",
+            "severity": "HIGH",
+            "message": "f6bca056b429-3",
+            "timestamp": "2026-09-17T04:39:30.222201Z",
+            "receivedAt": "2026-09-17T04:39:30.257681421Z"
+          }
+        },
+        {
+          "request": {
+            "service": "load-validation-20260917T043823Z-3e27a8-burst",
+            "type": "LOAD_TEST",
+            "severity": "HIGH",
+            "message": "f6bca056b429-4",
+            "timestamp": "2026-09-17T04:39:30.335705+00:00"
+          },
+          "status": 201,
+          "latency_ms": 108.51400002138689,
+          "response": {
+            "id": "5f0a20ee-5da9-4009-98f2-4d3b2c601147",
+            "service": "load-validation-20260917T043823Z-3e27a8-burst",
+            "type": "LOAD_TEST",
+            "severity": "HIGH",
+            "message": "f6bca056b429-4",
+            "timestamp": "2026-09-17T04:39:30.335705Z",
+            "receivedAt": "2026-09-17T04:39:30.345374087Z"
+          }
+        },
+        {
+          "request": {
+            "service": "load-validation-20260917T043823Z-3e27a8-burst",
+            "type": "LOAD_TEST",
+            "severity": "HIGH",
+            "message": "f6bca056b429-5",
+            "timestamp": "2026-09-17T04:39:30.354101+00:00"
+          },
+          "status": 201,
+          "latency_ms": 139.69169999472797,
+          "response": {
+            "id": "97af4f4b-5043-44b7-9733-9364d95c0e17",
+            "service": "load-validation-20260917T043823Z-3e27a8-burst",
+            "type": "LOAD_TEST",
+            "severity": "HIGH",
+            "message": "f6bca056b429-5",
+            "timestamp": "2026-09-17T04:39:30.354101Z",
+            "receivedAt": "2026-09-17T04:39:30.382092617Z"
+          }
+        },
+        {
+          "request": {
+            "service": "load-validation-20260917T043823Z-3e27a8-burst",
+            "type": "LOAD_TEST",
+            "severity": "HIGH",
+            "message": "f6bca056b429-6",
+            "timestamp": "2026-09-17T04:39:30.356922+00:00"
+          },
+          "status": 201,
+          "latency_ms": 133.29139997949824,
+          "response": {
+            "id": "f26bff11-c6f2-4fce-97de-4f9833424af8",
+            "service": "load-validation-20260917T043823Z-3e27a8-burst",
+            "type": "LOAD_TEST",
+            "severity": "HIGH",
+            "message": "f6bca056b429-6",
+            "timestamp": "2026-09-17T04:39:30.356922Z",
+            "receivedAt": "2026-09-17T04:39:30.377302474Z"
+          }
+        },
+        {
+          "request": {
+            "service": "load-validation-20260917T043823Z-3e27a8-burst",
+            "type": "LOAD_TEST",
+            "severity": "HIGH",
+            "message": "f6bca056b429-7",
+            "timestamp": "2026-09-17T04:39:30.368512+00:00"
+          },
+          "status": 201,
+          "latency_ms": 121.64229998597875,
+          "response": {
+            "id": "04814968-ec9b-4353-b407-8b59a584ed0f",
+            "service": "load-validation-20260917T043823Z-3e27a8-burst",
+            "type": "LOAD_TEST",
+            "severity": "HIGH",
+            "message": "f6bca056b429-7",
+            "timestamp": "2026-09-17T04:39:30.368512Z",
+            "receivedAt": "2026-09-17T04:39:30.379494305Z"
+          }
+        },
+        {
+          "request": {
+            "service": "load-validation-20260917T043823Z-3e27a8-burst",
+            "type": "LOAD_TEST",
+            "severity": "HIGH",
+            "message": "f6bca056b429-8",
+            "timestamp": "2026-09-17T04:39:30.437129+00:00"
+          },
+          "status": 201,
+          "latency_ms": 81.39410003786907,
+          "response": {
+            "id": "94677772-f4c6-4a1b-b4a2-beaaf5d53ea7",
+            "service": "load-validation-20260917T043823Z-3e27a8-burst",
+            "type": "LOAD_TEST",
+            "severity": "HIGH",
+            "message": "f6bca056b429-8",
+            "timestamp": "2026-09-17T04:39:30.437129Z",
+            "receivedAt": "2026-09-17T04:39:30.458431548Z"
+          }
+        },
+        {
+          "request": {
+            "service": "load-validation-20260917T043823Z-3e27a8-burst",
+            "type": "LOAD_TEST",
+            "severity": "HIGH",
+            "message": "f6bca056b429-9",
+            "timestamp": "2026-09-17T04:39:30.490357+00:00"
+          },
+          "status": 429,
+          "latency_ms": 138.49490002030507,
+          "response": {
+            "timestamp": "2026-09-17T04:39:30.604Z",
+            "status": 429,
+            "error": "Too Many Requests",
+            "path": "/events"
+          }
+        },
+        {
+          "request": {
+            "service": "load-validation-20260917T043823Z-3e27a8-burst",
+            "type": "LOAD_TEST",
+            "severity": "HIGH",
+            "message": "f6bca056b429-10",
+            "timestamp": "2026-09-17T04:39:30.492357+00:00"
+          },
+          "status": 429,
+          "latency_ms": 139.28760000271723,
+          "response": {
+            "timestamp": "2026-09-17T04:39:30.605Z",
+            "status": 429,
+            "error": "Too Many Requests",
+            "path": "/events"
+          }
+        },
+        {
+          "request": {
+            "service": "load-validation-20260917T043823Z-3e27a8-burst",
+            "type": "LOAD_TEST",
+            "severity": "HIGH",
+            "message": "f6bca056b429-11",
+            "timestamp": "2026-09-17T04:39:30.493358+00:00"
+          },
+          "status": 201,
+          "latency_ms": 96.52780002215877,
+          "response": {
+            "id": "cef8c98d-3e60-4b09-a872-716cdaa7859b",
+            "service": "load-validation-20260917T043823Z-3e27a8-burst",
+            "type": "LOAD_TEST",
+            "severity": "HIGH",
+            "message": "f6bca056b429-11",
+            "timestamp": "2026-09-17T04:39:30.493358Z",
+            "receivedAt": "2026-09-17T04:39:30.533652358Z"
+          }
+        },
+        {
+          "request": {
+            "service": "load-validation-20260917T043823Z-3e27a8-burst",
+            "type": "LOAD_TEST",
+            "severity": "HIGH",
+            "message": "f6bca056b429-12",
+            "timestamp": "2026-09-17T04:39:30.525322+00:00"
+          },
+          "status": 429,
+          "latency_ms": 101.38090001419187,
+          "response": {
+            "timestamp": "2026-09-17T04:39:30.609Z",
+            "status": 429,
+            "error": "Too Many Requests",
+            "path": "/events"
+          }
+        },
+        {
+          "request": {
+            "service": "load-validation-20260917T043823Z-3e27a8-burst",
+            "type": "LOAD_TEST",
+            "severity": "HIGH",
+            "message": "f6bca056b429-13",
+            "timestamp": "2026-09-17T04:39:30.588048+00:00"
+          },
+          "status": 429,
+          "latency_ms": 37.64039999805391,
+          "response": {
+            "timestamp": "2026-09-17T04:39:30.604Z",
+            "status": 429,
+            "error": "Too Many Requests",
+            "path": "/events"
+          }
+        },
+        {
+          "request": {
+            "service": "load-validation-20260917T043823Z-3e27a8-burst",
+            "type": "LOAD_TEST",
+            "severity": "HIGH",
+            "message": "f6bca056b429-14",
+            "timestamp": "2026-09-17T04:39:30.626406+00:00"
+          },
+          "status": 429,
+          "latency_ms": 29.34460004325956,
+          "response": {
+            "timestamp": "2026-09-17T04:39:30.651Z",
+            "status": 429,
+            "error": "Too Many Requests",
+            "path": "/events"
+          }
+        },
+        {
+          "request": {
+            "service": "load-validation-20260917T043823Z-3e27a8-burst",
+            "type": "LOAD_TEST",
+            "severity": "HIGH",
+            "message": "f6bca056b429-15",
+            "timestamp": "2026-09-17T04:39:30.626406+00:00"
+          },
+          "status": 429,
+          "latency_ms": 39.84199999831617,
+          "response": {
+            "timestamp": "2026-09-17T04:39:30.661Z",
+            "status": 429,
+            "error": "Too Many Requests",
+            "path": "/events"
+          }
+        },
+        {
+          "request": {
+            "service": "load-validation-20260917T043823Z-3e27a8-burst",
+            "type": "LOAD_TEST",
+            "severity": "HIGH",
+            "message": "f6bca056b429-16",
+            "timestamp": "2026-09-17T04:39:30.626406+00:00"
+          },
+          "status": 429,
+          "latency_ms": 48.94509998848662,
+          "response": {
+            "timestamp": "2026-09-17T04:39:30.665Z",
+            "status": 429,
+            "error": "Too Many Requests",
+            "path": "/events"
+          }
+        },
+        {
+          "request": {
+            "service": "load-validation-20260917T043823Z-3e27a8-burst",
+            "type": "LOAD_TEST",
+            "severity": "HIGH",
+            "message": "f6bca056b429-17",
+            "timestamp": "2026-09-17T04:39:30.626406+00:00"
+          },
+          "status": 429,
+          "latency_ms": 43.31759997876361,
+          "response": {
+            "timestamp": "2026-09-17T04:39:30.659Z",
+            "status": 429,
+            "error": "Too Many Requests",
+            "path": "/events"
+          }
+        },
+        {
+          "request": {
+            "service": "load-validation-20260917T043823Z-3e27a8-burst",
+            "type": "LOAD_TEST",
+            "severity": "HIGH",
+            "message": "f6bca056b429-18",
+            "timestamp": "2026-09-17T04:39:30.654260+00:00"
+          },
+          "status": 429,
+          "latency_ms": 33.0792999593541,
+          "response": {
+            "timestamp": "2026-09-17T04:39:30.687Z",
+            "status": 429,
+            "error": "Too Many Requests",
+            "path": "/events"
+          }
+        },
+        {
+          "request": {
+            "service": "load-validation-20260917T043823Z-3e27a8-burst",
+            "type": "LOAD_TEST",
+            "severity": "HIGH",
+            "message": "f6bca056b429-19",
+            "timestamp": "2026-09-17T04:39:30.667980+00:00"
+          },
+          "status": 429,
+          "latency_ms": 29.873299994505942,
+          "response": {
+            "timestamp": "2026-09-17T04:39:30.694Z",
+            "status": 429,
+            "error": "Too Many Requests",
+            "path": "/events"
+          }
+        }
+      ],
+      "reconciliation": {
+        "first_observation": {
+          "events": 10,
+          "processed_events": 10,
+          "incidents": 1
+        },
+        "final": {
+          "events": 10,
+          "processed_events": 10,
+          "incidents": 1
+        },
+        "observed_catch_up_seconds": 0.6569751999923028
+      },
+      "kafka_offset_delta": 10,
+      "metrics_before": {
+        "signalforge_events_ingested_total": 3.0,
+        "signalforge_events_processed_total": 3.0,
+        "signalforge_events_duplicates_total": 0.0,
+        "signalforge_incidents_created_total": 0.0,
+        "signalforge_ingestion_rate_limit_rejections_total": 0.0,
+        "signalforge_processing_failures_total": 0.0,
+        "process_start_time_seconds": 1789581341.634,
+        "heap_bytes": 42151720.0,
+        "process_cpu_usage": 0.004827701015481938,
+        "pool_max": 10.0
+      },
+      "metrics_after": {
+        "signalforge_events_ingested_total": 13.0,
+        "signalforge_events_processed_total": 13.0,
+        "signalforge_events_duplicates_total": 0.0,
+        "signalforge_incidents_created_total": 0.0,
+        "signalforge_ingestion_rate_limit_rejections_total": 10.0,
+        "signalforge_processing_failures_total": 0.0,
+        "process_start_time_seconds": 1789581341.634,
+        "heap_bytes": 50540328.0,
+        "process_cpu_usage": 0.03753529314067431,
+        "pool_max": 10.0
+      },
+      "metric_delta": {
+        "signalforge_events_ingested_total": 10.0,
+        "signalforge_events_processed_total": 10.0,
+        "signalforge_events_duplicates_total": 0.0,
+        "signalforge_incidents_created_total": 0.0,
+        "signalforge_ingestion_rate_limit_rejections_total": 10.0,
+        "signalforge_processing_failures_total": 0.0
+      }
+    },
+    "duplicate": {
+      "event_id": "9490590d-08f6-47ad-a3c0-cadeda222fb3",
+      "copies": 3,
+      "method": "console producer, original UUID key and JSON value",
+      "counts": {
+        "events": 10,
+        "processed_events": 10,
+        "incidents": 1
+      },
+      "metric_delta": {
+        "signalforge_events_ingested_total": 0.0,
+        "signalforge_events_processed_total": 0.0,
+        "signalforge_events_duplicates_total": 3.0,
+        "signalforge_incidents_created_total": 0.0,
+        "signalforge_ingestion_rate_limit_rejections_total": 0.0,
+        "signalforge_processing_failures_total": 0.0
+      }
+    },
+    "restart": {
+      "service": "load-validation-20260917T043823Z-3e27a8-restart",
+      "fixed_event_timestamp": "2026-09-17T04:41:22.910977+00:00",
+      "pre_restart_two": {
+        "first_observation": {
+          "events": 2,
+          "processed_events": 2,
+          "incidents": 0
+        },
+        "final": {
+          "events": 2,
+          "processed_events": 2,
+          "incidents": 0
+        },
+        "observed_catch_up_seconds": 0.6554502000217326
+      },
+      "post_restart_one": {
+        "first_observation": {
+          "events": 3,
+          "processed_events": 3,
+          "incidents": 0
+        },
+        "final": {
+          "events": 3,
+          "processed_events": 3,
+          "incidents": 0
+        },
+        "observed_catch_up_seconds": 0.5727533000172116
+      },
+      "post_restart_three": {
+        "first_observation": {
+          "events": 5,
+          "processed_events": 5,
+          "incidents": 1
+        },
+        "final": {
+          "events": 5,
+          "processed_events": 5,
+          "incidents": 1
+        },
+        "observed_catch_up_seconds": 0.5858905999921262
+      },
+      "recovery_seconds": 43.10256369999843,
+      "counts_before": {
+        "events": 45,
+        "processed_events": 35,
+        "incidents": 8
+      },
+      "counts_after": {
+        "events": 45,
+        "processed_events": 35,
+        "incidents": 8
+      },
+      "metrics_before": {
+        "signalforge_events_ingested_total": 15.0,
+        "signalforge_events_processed_total": 15.0,
+        "signalforge_events_duplicates_total": 3.0,
+        "signalforge_incidents_created_total": 0.0,
+        "signalforge_ingestion_rate_limit_rejections_total": 10.0,
+        "signalforge_processing_failures_total": 0.0,
+        "process_start_time_seconds": 1789581341.634,
+        "heap_bytes": 69414696.0,
+        "process_cpu_usage": 0.010722063997319483,
+        "pool_max": 10.0
+      },
+      "metrics_after": {
+        "signalforge_events_ingested_total": 0.0,
+        "signalforge_events_processed_total": 0.0,
+        "signalforge_events_duplicates_total": 0.0,
+        "signalforge_incidents_created_total": 0.0,
+        "signalforge_ingestion_rate_limit_rejections_total": 0.0,
+        "signalforge_processing_failures_total": 0.0,
+        "process_start_time_seconds": 1789620106.412,
+        "heap_bytes": 56859552.0,
+        "process_cpu_usage": 0.5,
+        "pool_max": 10.0
+      }
+    },
+    "duplicate_after_restart": {
+      "event_id": "9490590d-08f6-47ad-a3c0-cadeda222fb3",
+      "copies": 3,
+      "method": "console producer, original UUID key and JSON value",
+      "counts": {
+        "events": 10,
+        "processed_events": 10,
+        "incidents": 1
+      },
+      "metric_delta": {
+        "signalforge_events_ingested_total": 0.0,
+        "signalforge_events_processed_total": 0.0,
+        "signalforge_events_duplicates_total": 3.0,
+        "signalforge_incidents_created_total": 0.0,
+        "signalforge_ingestion_rate_limit_rejections_total": 0.0,
+        "signalforge_processing_failures_total": 0.0
+      }
+    },
+    "kafka_outage": {
+      "request": {
+        "service": "load-validation-20260917T043823Z-3e27a8-kafka-outage",
+        "concurrency": 1,
+        "attempted": 1,
+        "accepted_201": 0,
+        "rejected_429": 0,
+        "status_counts": {
+          "500": 1
+        },
+        "request_failures": 0,
+        "elapsed_seconds": 60.10246510000434,
+        "accepted_per_second": 0.0,
+        "latency_ms": {
+          "min": 60099.51670002192,
+          "average": 60099.51670002192,
+          "p50": 60099.51670002192,
+          "p95": 60099.51670002192,
+          "p99": 60099.51670002192,
+          "max": 60099.51670002192
+        },
+        "accepted_latency_ms": {
+          "min": null,
+          "average": null,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "results": [
+          {
+            "request": {
+              "service": "load-validation-20260917T043823Z-3e27a8-kafka-outage",
+              "type": "LOAD_TEST",
+              "severity": "HIGH",
+              "message": "894a422ae17c-0",
+              "timestamp": "2026-09-17T04:43:29.939389+00:00"
+            },
+            "status": 500,
+            "latency_ms": 60099.51670002192,
+            "response": {
+              "timestamp": "2026-09-17T04:44:30.020Z",
+              "status": 500,
+              "error": "Internal Server Error",
+              "path": "/events"
+            }
+          }
+        ]
+      },
+      "database": {
+        "events": 0,
+        "processed_events": 0,
+        "incidents": 0
+      },
+      "metrics_before": {
+        "signalforge_events_ingested_total": 3.0,
+        "signalforge_events_processed_total": 3.0,
+        "signalforge_events_duplicates_total": 3.0,
+        "signalforge_incidents_created_total": 0.0,
+        "signalforge_ingestion_rate_limit_rejections_total": 0.0,
+        "signalforge_processing_failures_total": 0.0,
+        "process_start_time_seconds": 1789620106.412,
+        "heap_bytes": 94608288.0,
+        "process_cpu_usage": 0.00829324929507381,
+        "pool_max": 10.0
+      },
+      "metrics_after": {
+        "signalforge_events_ingested_total": 3.0,
+        "signalforge_events_processed_total": 3.0,
+        "signalforge_events_duplicates_total": 3.0,
+        "signalforge_incidents_created_total": 0.0,
+        "signalforge_ingestion_rate_limit_rejections_total": 0.0,
+        "signalforge_processing_failures_total": 0.0,
+        "process_start_time_seconds": 1789620106.412,
+        "heap_bytes": 63866552.0,
+        "process_cpu_usage": 0.008378016085790885,
+        "pool_max": 10.0
+      }
+    },
+    "kafka_recovery": {
+      "recovery_seconds": 26.5888315999764,
+      "request": {
+        "service": "load-validation-20260917T043823Z-3e27a8-kafka-recovery",
+        "concurrency": 1,
+        "attempted": 1,
+        "accepted_201": 1,
+        "rejected_429": 0,
+        "status_counts": {
+          "201": 1
+        },
+        "request_failures": 0,
+        "elapsed_seconds": 0.11426970001775771,
+        "accepted_per_second": 8.751226264220508,
+        "latency_ms": {
+          "min": 113.5319999884814,
+          "average": 113.5319999884814,
+          "p50": 113.5319999884814,
+          "p95": 113.5319999884814,
+          "p99": 113.5319999884814,
+          "max": 113.5319999884814
+        },
+        "accepted_latency_ms": {
+          "min": 113.5319999884814,
+          "average": 113.5319999884814,
+          "p50": 113.5319999884814,
+          "p95": 113.5319999884814,
+          "p99": 113.5319999884814,
+          "max": 113.5319999884814
+        },
+        "results": [
+          {
+            "request": {
+              "service": "load-validation-20260917T043823Z-3e27a8-kafka-recovery",
+              "type": "LOAD_TEST",
+              "severity": "HIGH",
+              "message": "31b6d56e21f4-0",
+              "timestamp": "2026-09-17T04:45:14.140197+00:00"
+            },
+            "status": 201,
+            "latency_ms": 113.5319999884814,
+            "response": {
+              "id": "3c635d29-f425-47d0-8cb6-df5b43b3277f",
+              "service": "load-validation-20260917T043823Z-3e27a8-kafka-recovery",
+              "type": "LOAD_TEST",
+              "severity": "HIGH",
+              "message": "31b6d56e21f4-0",
+              "timestamp": "2026-09-17T04:45:14.140197Z",
+              "receivedAt": "2026-09-17T04:45:14.154024334Z"
+            }
+          }
+        ]
+      },
+      "reconciliation": {
+        "first_observation": {
+          "events": 1,
+          "processed_events": 0,
+          "incidents": 0
+        },
+        "final": {
+          "events": 1,
+          "processed_events": 1,
+          "incidents": 0
+        },
+        "observed_catch_up_seconds": 2.190960600040853
+      },
+      "outage_rows_after_recovery": {
+        "events": 0,
+        "processed_events": 0,
+        "incidents": 0
+      },
+      "counts_before_outage": {
+        "events": 48,
+        "processed_events": 38,
+        "incidents": 9
+      },
+      "counts_after_recovery": {
+        "events": 49,
+        "processed_events": 39,
+        "incidents": 9
+      },
+      "metrics": {
+        "signalforge_events_ingested_total": 4.0,
+        "signalforge_events_processed_total": 4.0,
+        "signalforge_events_duplicates_total": 3.0,
+        "signalforge_incidents_created_total": 0.0,
+        "signalforge_ingestion_rate_limit_rejections_total": 0.0,
+        "signalforge_processing_failures_total": 0.0,
+        "process_start_time_seconds": 1789620106.412,
+        "heap_bytes": 78546616.0,
+        "process_cpu_usage": 0.025050100200400802,
+        "pool_max": 10.0
+      }
+    },
+    "postgres_outage": {
+      "health": {
+        "status": 503,
+        "latency_ms": 30037.21979999682,
+        "response": {
+          "groups": [
+            "liveness",
+            "readiness"
+          ],
+          "status": "DOWN"
+        }
+      },
+      "get": {
+        "status": 500,
+        "latency_ms": 30054.744100023527,
+        "response": {
+          "timestamp": "2026-09-17T04:46:08.630Z",
+          "status": 500,
+          "error": "Internal Server Error",
+          "path": "/events"
+        }
+      },
+      "post": {
+        "service": "load-validation-20260917T043823Z-3e27a8-postgres-outage",
+        "concurrency": 1,
+        "attempted": 1,
+        "accepted_201": 0,
+        "rejected_429": 0,
+        "status_counts": {
+          "500": 1
+        },
+        "request_failures": 0,
+        "elapsed_seconds": 30.055016300000716,
+        "accepted_per_second": 0.0,
+        "latency_ms": {
+          "min": 30053.851799981203,
+          "average": 30053.851799981203,
+          "p50": 30053.851799981203,
+          "p95": 30053.851799981203,
+          "p99": 30053.851799981203,
+          "max": 30053.851799981203
+        },
+        "accepted_latency_ms": {
+          "min": null,
+          "average": null,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "results": [
+          {
+            "request": {
+              "service": "load-validation-20260917T043823Z-3e27a8-postgres-outage",
+              "type": "LOAD_TEST",
+              "severity": "HIGH",
+              "message": "f994548e381b-0",
+              "timestamp": "2026-09-17T04:45:38.579425+00:00"
+            },
+            "status": 500,
+            "latency_ms": 30053.851799981203,
+            "response": {
+              "timestamp": "2026-09-17T04:46:08.631Z",
+              "status": 500,
+              "error": "Internal Server Error",
+              "path": "/events"
+            }
+          }
+        ]
+      },
+      "metrics_before": {
+        "signalforge_events_ingested_total": 4.0,
+        "signalforge_events_processed_total": 4.0,
+        "signalforge_events_duplicates_total": 3.0,
+        "signalforge_incidents_created_total": 0.0,
+        "signalforge_ingestion_rate_limit_rejections_total": 0.0,
+        "signalforge_processing_failures_total": 0.0,
+        "process_start_time_seconds": 1789620106.412,
+        "heap_bytes": 78546616.0,
+        "process_cpu_usage": 0.025050100200400802,
+        "pool_max": 10.0
+      },
+      "metrics_after": {
+        "signalforge_events_ingested_total": 4.0,
+        "signalforge_events_processed_total": 4.0,
+        "signalforge_events_duplicates_total": 3.0,
+        "signalforge_incidents_created_total": 0.0,
+        "signalforge_ingestion_rate_limit_rejections_total": 0.0,
+        "signalforge_processing_failures_total": 0.0,
+        "process_start_time_seconds": 1789620106.412,
+        "heap_bytes": 87983800.0,
+        "process_cpu_usage": 0.011904761904761904,
+        "pool_max": 10.0
+      }
+    },
+    "postgres_recovery": {
+      "recovery_seconds": 13.15843050001422,
+      "request": {
+        "service": "load-validation-20260917T043823Z-3e27a8-postgres-recovery",
+        "concurrency": 1,
+        "attempted": 1,
+        "accepted_201": 1,
+        "rejected_429": 0,
+        "status_counts": {
+          "201": 1
+        },
+        "request_failures": 0,
+        "elapsed_seconds": 0.06438229995546862,
+        "accepted_per_second": 15.532219269763136,
+        "latency_ms": {
+          "min": 63.25989996548742,
+          "average": 63.25989996548742,
+          "p50": 63.25989996548742,
+          "p95": 63.25989996548742,
+          "p99": 63.25989996548742,
+          "max": 63.25989996548742
+        },
+        "accepted_latency_ms": {
+          "min": 63.25989996548742,
+          "average": 63.25989996548742,
+          "p50": 63.25989996548742,
+          "p95": 63.25989996548742,
+          "p99": 63.25989996548742,
+          "max": 63.25989996548742
+        },
+        "results": [
+          {
+            "request": {
+              "service": "load-validation-20260917T043823Z-3e27a8-postgres-recovery",
+              "type": "LOAD_TEST",
+              "severity": "HIGH",
+              "message": "c57bb606b89f-0",
+              "timestamp": "2026-09-17T04:46:40.954252+00:00"
+            },
+            "status": 201,
+            "latency_ms": 63.25989996548742,
+            "response": {
+              "id": "530fdc33-9979-4ca0-a578-f9d830831a17",
+              "service": "load-validation-20260917T043823Z-3e27a8-postgres-recovery",
+              "type": "LOAD_TEST",
+              "severity": "HIGH",
+              "message": "c57bb606b89f-0",
+              "timestamp": "2026-09-17T04:46:40.954252Z",
+              "receivedAt": "2026-09-17T04:46:40.971395383Z"
+            }
+          }
+        ]
+      },
+      "reconciliation": {
+        "first_observation": {
+          "events": 1,
+          "processed_events": 1,
+          "incidents": 0
+        },
+        "final": {
+          "events": 1,
+          "processed_events": 1,
+          "incidents": 0
+        },
+        "observed_catch_up_seconds": 0.5838042999967001
+      },
+      "counts_before": {
+        "events": 49,
+        "processed_events": 39,
+        "incidents": 9
+      },
+      "counts_after": {
+        "events": 49,
+        "processed_events": 39,
+        "incidents": 9
+      },
+      "failed_request_rows": {
+        "events": 0,
+        "processed_events": 0,
+        "incidents": 0
+      },
+      "metrics": {
+        "signalforge_events_ingested_total": 5.0,
+        "signalforge_events_processed_total": 5.0,
+        "signalforge_events_duplicates_total": 3.0,
+        "signalforge_incidents_created_total": 0.0,
+        "signalforge_ingestion_rate_limit_rejections_total": 0.0,
+        "signalforge_processing_failures_total": 0.0,
+        "process_start_time_seconds": 1789620106.412,
+        "heap_bytes": 97420984.0,
+        "process_cpu_usage": 0.00666000666000666,
+        "pool_max": 10.0
+      }
+    }
+  },
+  "baseline": {
+    "events": 33,
+    "processed_events": 23,
+    "incidents": 7
+  },
+  "initial_health": [
+    {
+      "service": "backend",
+      "state": "running",
+      "health": "healthy"
+    },
+    {
+      "service": "frontend",
+      "state": "running",
+      "health": "healthy"
+    },
+    {
+      "service": "grafana",
+      "state": "running",
+      "health": ""
+    },
+    {
+      "service": "kafka",
+      "state": "running",
+      "health": "healthy"
+    },
+    {
+      "service": "postgres",
+      "state": "running",
+      "health": "healthy"
+    },
+    {
+      "service": "prometheus",
+      "state": "running",
+      "health": ""
+    }
+  ],
+  "initial_metrics": {
+    "signalforge_events_ingested_total": 3.0,
+    "signalforge_events_processed_total": 3.0,
+    "signalforge_events_duplicates_total": 0.0,
+    "signalforge_incidents_created_total": 0.0,
+    "signalforge_ingestion_rate_limit_rejections_total": 0.0,
+    "signalforge_processing_failures_total": 0.0,
+    "process_start_time_seconds": 1789581341.634,
+    "heap_bytes": 96569672.0,
+    "process_cpu_usage": 0.002156960345113655,
+    "pool_max": 10.0
+  },
+  "final": {
+    "events": 50,
+    "processed_events": 40,
+    "incidents": 9
+  },
+  "added": {
+    "events": 17,
+    "processed_events": 17,
+    "incidents": 2
+  },
+  "integrity": {
+    "original_events_survived": true,
+    "original_incidents_survived": true,
+    "original_markers_survived": true,
+    "flyway_history_unchanged": true
+  },
+  "final_health": [
+    {
+      "service": "backend",
+      "state": "running",
+      "health": "healthy"
+    },
+    {
+      "service": "frontend",
+      "state": "running",
+      "health": "healthy"
+    },
+    {
+      "service": "grafana",
+      "state": "running",
+      "health": ""
+    },
+    {
+      "service": "kafka",
+      "state": "running",
+      "health": "healthy"
+    },
+    {
+      "service": "postgres",
+      "state": "running",
+      "health": "healthy"
+    },
+    {
+      "service": "prometheus",
+      "state": "running",
+      "health": ""
+    }
+  ],
+  "final_metrics": {
+    "signalforge_events_ingested_total": 5.0,
+    "signalforge_events_processed_total": 5.0,
+    "signalforge_events_duplicates_total": 3.0,
+    "signalforge_incidents_created_total": 0.0,
+    "signalforge_ingestion_rate_limit_rejections_total": 0.0,
+    "signalforge_processing_failures_total": 0.0,
+    "process_start_time_seconds": 1789620106.412,
+    "heap_bytes": 46040760.0,
+    "process_cpu_usage": 0.005164945018327224,
+    "pool_max": 10.0
+  },
+  "complete": true,
+  "post_validation_checks": {
+    "grafana_dashboard": {
+      "title": "SignalForge Overview",
+      "queries": [
+        {
+          "status": "success",
+          "panel": "Event Ingestion Rate",
+          "expression": "sum(rate(signalforge_events_ingested_total{job=\"signalforge\"}[$__rate_interval])) or vector(0)"
+        },
+        {
+          "status": "success",
+          "panel": "Event Processing Rate",
+          "expression": "sum(rate(signalforge_events_processed_total{job=\"signalforge\"}[$__rate_interval])) or vector(0)"
+        },
+        {
+          "status": "success",
+          "panel": "Incidents Created",
+          "expression": "sum(increase(signalforge_incidents_total{job=\"signalforge\"}[$__range])) or vector(0)"
+        },
+        {
+          "status": "success",
+          "panel": "Duplicate Events",
+          "expression": "sum(increase(signalforge_events_duplicates_total{job=\"signalforge\"}[$__range])) or vector(0)"
+        },
+        {
+          "status": "success",
+          "panel": "Processing Failures",
+          "expression": "sum(increase(signalforge_processing_failures_total{job=\"signalforge\"}[$__range])) or vector(0)"
+        },
+        {
+          "status": "success",
+          "panel": "Rate Limit Rejections",
+          "expression": "sum(increase(signalforge_ingestion_rate_limit_rejections_total{job=\"signalforge\"}[$__range])) or vector(0)"
+        },
+        {
+          "status": "success",
+          "panel": "Incidents by Severity",
+          "expression": "sum by (severity) (increase(signalforge_incidents_total{job=\"signalforge\"}[$__range]))"
+        },
+        {
+          "status": "success",
+          "panel": "Events by Service",
+          "expression": "sum by (service) (rate(signalforge_events_ingested_total{job=\"signalforge\"}[$__rate_interval]))"
+        },
+        {
+          "status": "success",
+          "panel": "JVM Heap Usage",
+          "expression": "sum(jvm_memory_used_bytes{job=\"signalforge\",area=\"heap\"})"
+        },
+        {
+          "status": "success",
+          "panel": "Process CPU Usage",
+          "expression": "process_cpu_usage{job=\"signalforge\"}"
+        }
+      ],
+      "provisioned": true
+    },
+    "corrected_incident_metric": [
+      {
+        "metric": {},
+        "value": [
+          1789623777.597,
+          "1"
+        ]
+      }
+    ],
+    "grafana_datasource": "OK",
+    "backend_health": "UP",
+    "frontend_http": 200,
+    "prometheus_target": {
+      "scrapeUrl": "http://backend:8080/actuator/prometheus",
+      "health": "up"
+    },
+    "incorrect_incident_metric": [],
+    "tests": {
+      "maven_verify": {
+        "tests": 81,
+        "failures": 0,
+        "errors": 0,
+        "java": "21",
+        "timezone": "Asia/Kolkata"
+      },
+      "frontend_tests": 33,
+      "frontend_build": "passed",
+      "node": "24.21.0",
+      "validation_tool_tests": 5,
+      "compose_config": "passed"
+    },
+    "final_database_counts_after_tests": {
+      "events": 50,
+      "processed_events": 40,
+      "incidents": 9
+    },
+    "final_service_status_after_tests": [
+      {
+        "service": "backend",
+        "state": "running",
+        "health": "healthy"
+      },
+      {
+        "service": "frontend",
+        "state": "running",
+        "health": "healthy"
+      },
+      {
+        "service": "grafana",
+        "state": "running",
+        "health": ""
+      },
+      {
+        "service": "kafka",
+        "state": "running",
+        "health": "healthy"
+      },
+      {
+        "service": "postgres",
+        "state": "running",
+        "health": "healthy"
+      },
+      {
+        "service": "prometheus",
+        "state": "running",
+        "health": ""
+      }
+    ]
+  },
+  "observed_log_excerpts": {
+    "kafka_outage": "TimeoutException: Topic signalforge.events not present in metadata after 60000 ms.",
+    "postgres_outage": "SQLTransientConnectionException: HikariPool-1 - Connection is not available, request timed out after 30000ms",
+    "restart_flyway": "Successfully validated 5 migrations; schema public is up to date."
+  },
+  "environment": {
+    "host": "Windows",
+    "containers": "Docker Desktop Linux",
+    "logical_cpus": 4,
+    "host_memory_gib": 11.9,
+    "docker_memory_gib": 5.75,
+    "python": "3.11.3",
+    "java": "21",
+    "node": "24.21.0"
+  }
+}

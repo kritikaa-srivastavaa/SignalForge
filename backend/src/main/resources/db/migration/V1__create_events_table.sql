@@ -1,0 +1,9 @@
+CREATE TABLE events (
+    id UUID PRIMARY KEY,
+    service VARCHAR(255) NOT NULL,
+    type VARCHAR(255) NOT NULL,
+    severity VARCHAR(255) NOT NULL,
+    message TEXT NOT NULL,
+    timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+    received_at TIMESTAMP WITH TIME ZONE NOT NULL
+);

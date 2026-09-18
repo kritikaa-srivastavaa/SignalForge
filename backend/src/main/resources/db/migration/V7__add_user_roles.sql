@@ -1,0 +1,3 @@
+ALTER TABLE app_users
+    ADD COLUMN role VARCHAR(16) NOT NULL DEFAULT 'VIEWER',
+    ADD CONSTRAINT ck_app_users_role CHECK (role IN ('VIEWER', 'OPERATOR', 'ADMIN'));

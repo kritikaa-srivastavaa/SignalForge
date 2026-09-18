@@ -1,0 +1,17 @@
+# Generated output and local tooling
+target/
+.git/
+.idea/
+.vscode/
+*.iml
+*.log
+logs/
+
+# Local secrets and temporary files
+.env
+.env.*
+*.tmp
+*.bak
+*~
+.DS_Store
+Thumbs.db
