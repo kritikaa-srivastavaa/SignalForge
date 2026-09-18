@@ -1,3 +1,6 @@
+import { Access } from './pages/Access';
+import { AdminAccessRequests } from './pages/AdminAccessRequests';
+import { AdminAudit } from './pages/AdminAudit';
 import { canManageUsers } from './auth/permissions';
 import { AdminUsers } from './pages/AdminUsers';
 import { AuthProvider, useAuth } from './auth/AuthProvider';
@@ -26,7 +29,7 @@ function Console() {
   const location = useLocation();
   const main = useRef<HTMLElement>(null);
   useEffect(() => {
-    const title = location.pathname === '/admin/users' ? 'Users and roles' : location.pathname === '/' ? 'Overview' : location.pathname === '/events' ? 'Events' : location.pathname.startsWith('/incidents/') ? 'Incident details' : location.pathname === '/incidents' ? 'Incidents' : 'Not found';
+    const title = location.pathname === '/access' ? 'My access' : location.pathname === '/admin/access-requests' ? 'Access requests' : location.pathname === '/admin/audit' ? 'Audit log' : location.pathname === '/admin/users' ? 'Users and roles' : location.pathname === '/' ? 'Overview' : location.pathname === '/events' ? 'Events' : location.pathname.startsWith('/incidents/') ? 'Incident details' : location.pathname === '/incidents' ? 'Incidents' : 'Not found';
     document.title = `${title} · SignalForge`;
     main.current?.focus();
   }, [location.pathname]);
@@ -39,6 +42,8 @@ function Console() {
         <NavLink to="/" end><NavIcon kind="overview" />Overview</NavLink>
         <NavLink to="/events"><NavIcon kind="events" />Events</NavLink>
         <NavLink to="/incidents"><NavIcon kind="incidents" />Incidents</NavLink>
+        <NavLink to="/access">My access</NavLink>
+        {canManageUsers(user) && <><NavLink to="/admin/access-requests">Access Requests</NavLink><NavLink to="/admin/audit">Audit Log</NavLink></>}
         {canManageUsers(user) && <NavLink to="/admin/users">Admin</NavLink>}
       </nav>
       <div className="sidebar-footer"><span className="workspace-avatar" aria-hidden="true">L</span><div>Local workspace<small>Incident operations</small></div></div>
@@ -50,6 +55,9 @@ function Console() {
           <Route path="/events" element={<CollectionPage key="events" title="Events" description="Explore incoming telemetry, one event at a time." load={getEvents} table={rows => <EventsTable events={rows} />} />} />
           <Route path="/incidents" element={<CollectionPage key="incidents" title="Incidents" description="Track detected incidents and their current status." load={getIncidents} table={rows => <IncidentsTable incidents={rows} />} />} />
           <Route path="/incidents/:id" element={<IncidentDetail />} />
+          <Route path="/access" element={<Access />} />
+          <Route path="/admin/access-requests" element={<AdminAccessRequests />} />
+          <Route path="/admin/audit" element={<AdminAudit />} />
           <Route path="/admin/users" element={<AdminUsers />} />
           <Route path="*" element={<div className="state"><p className="eyebrow">404</p><h1>Page not found</h1><p>This page isn’t part of the workspace.</p><Link className="text-link" to="/">Back to Overview</Link></div>} />
         </Routes>

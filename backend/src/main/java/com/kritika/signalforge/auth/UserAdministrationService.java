@@ -1,6 +1,7 @@
 package com.kritika.signalforge.auth;
 
 import java.util.List;
+import com.kritika.signalforge.audit.*;
 import java.util.UUID;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
@@ -13,10 +14,12 @@ import org.springframework.web.server.ResponseStatusException;
 public class UserAdministrationService {
     private final AppUserRepository users;
     private final RoleChangeLock roleChanges;
+    private final AuditService audit;
 
-    public UserAdministrationService(AppUserRepository users, RoleChangeLock roleChanges) {
+    public UserAdministrationService(AppUserRepository users, RoleChangeLock roleChanges, AuditService audit) {
         this.users = users;
         this.roleChanges = roleChanges;
+        this.audit = audit;
     }
 
     @Transactional(readOnly = true)
@@ -36,7 +39,10 @@ public class UserAdministrationService {
                 && users.countByRole(UserRole.ADMIN) <= 1) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "The last administrator cannot be demoted");
         }
+        UserRole oldRole = target.getRole();
         target.changeRole(role);
+        if (oldRole != role) audit.record(actor, AuditAction.USER_ROLE_CHANGED, AuditTarget.USER,
+                target.getId(), oldRole.name(), role.name());
         return UserResponse.from(users.saveAndFlush(target));
     }
 }

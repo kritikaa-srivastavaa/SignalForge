@@ -51,7 +51,7 @@ Open http://localhost:5173, create an account, then log in with email/password. 
 
 The Docker UI uses the existing same-origin Nginx /api proxy. Host Vite development uses localhost:8080 with explicit localhost:5173 credentialed CORS. The API client fetches a CSRF token before each mutation and includes cookies; it never stores auth tokens in localStorage/sessionStorage.
 
-Sessions are process-local: backend restart logs users out, and multiple backend instances would need sticky routing or shared session storage. Local HTTP cookies are not Secure; HTTPS deployments must enable Secure cookies. Backend-enforced RBAC now provides VIEWER, OPERATOR and ADMIN roles. Public registration defaults to VIEWER; OPERATOR/ADMIN may manage incidents, and ADMIN may manage user roles. Access governance remains deferred.
+Sessions are process-local: backend restart logs users out, and multiple backend instances would need sticky routing or shared session storage. Local HTTP cookies are not Secure; HTTPS deployments must enable Secure cookies. Backend-enforced RBAC now provides VIEWER, OPERATOR and ADMIN roles. Public registration defaults to VIEWER; OPERATOR/ADMIN may manage incidents, and ADMIN may manage user roles. VIEWER users may request OPERATOR access, ADMIN users may approve/reject requests, and access/role/incident mutations have an application-level append-only audit trail.
 
 Prompt 23 authentication answers: **"Who are you?"** Prompt 24 authorization answers: **"What are you allowed to do?"**
 
@@ -63,3 +63,8 @@ Spring Security enforces roles on the server while React reflects them in naviga
 Local admin bootstrap is explicitly opt-in through environment configuration and disabled by default. See [RBAC architecture, bootstrap and permissions](docs/security/RBAC.md) and [verification results](docs/security/RBAC_VERIFICATION.md).
 
 POST /events retains its Prompt 23 authenticated-session/CSRF boundary for development compatibility, independent of human roles. This is a documented temporary machine-ingestion identity gap, not an ADMIN capability; production service authentication remains future work.
+## Access governance and audit
+
+Use My access to request OPERATOR permission and refresh the review status. ADMIN users review requests under Access Requests and inspect the paginated Audit Log. Approval, role grant and audit persistence share one database transaction; CSRF, last-admin protection and current-session roles remain enforced.
+
+See [Access governance](docs/security/ACCESS_GOVERNANCE.md), [Audit design and limitations](docs/security/AUDIT.md), and [Prompt 25 verification](docs/security/ACCESS_GOVERNANCE_VERIFICATION.md).

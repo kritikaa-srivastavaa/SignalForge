@@ -60,6 +60,7 @@ public class SecurityConfig {
             // CSRF runs before authorization. Protected anonymous mutations still return 401.
             String path = request.getRequestURI().substring(request.getContextPath().length());
             boolean protectedApi = path.equals("/events") || path.startsWith("/events/")
+                    || path.equals("/access-requests") || path.startsWith("/access-requests/")
                     || path.equals("/incidents") || path.startsWith("/incidents/") || path.startsWith("/admin/");
             var authentication = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
             boolean anonymous = authentication == null || new org.springframework.security.authentication.AuthenticationTrustResolverImpl().isAnonymous(authentication);

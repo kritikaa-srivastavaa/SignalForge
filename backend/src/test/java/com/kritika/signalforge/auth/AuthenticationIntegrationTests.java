@@ -26,6 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 class AuthenticationIntegrationTests {
     private static final String PASSWORD = "test-only-password";
+    @Autowired org.springframework.jdbc.core.JdbcTemplate jdbc;
     @Autowired MockMvc mvc;
     @Autowired ObjectMapper json;
     @Autowired AppUserRepository users;
@@ -39,6 +40,7 @@ class AuthenticationIntegrationTests {
 
     @BeforeEach void setup() { email = "auth-test-" + UUID.randomUUID() + "@example.com"; }
     @AfterEach void cleanup() {
+        users.findByEmail(email).ifPresent(user -> jdbc.update("DELETE FROM audit_records WHERE actor_id = ?", user.getId()));
         // Delete only records created by this test, never pre-existing development data.
         incidents.deleteAllById(incidentIds);
         events.deleteAllById(eventIds);

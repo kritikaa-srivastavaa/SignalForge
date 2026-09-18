@@ -22,6 +22,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @Transactional
 class DevelopmentCorsIntegrationTests {
+    @Autowired private org.springframework.jdbc.core.JdbcTemplate jdbc;
+    @org.junit.jupiter.api.BeforeEach void auditActor() {
+        jdbc.update("INSERT INTO app_users(id,email,password_hash,display_name,created_at,role) VALUES (?, 'user', 'test-only', 'CORS Test', now(), 'OPERATOR')", java.util.UUID.randomUUID());
+    }
     @Autowired private MockMvc mvc;
     @Autowired private IncidentRepository repository;
 

@@ -1,5 +1,7 @@
 # Role-based access control (Prompt 24)
 
+Historical RBAC foundation: Prompt 25 extends this design with [access requests](ACCESS_GOVERNANCE.md) and [transactional audit](AUDIT.md). References below to those features being deferred describe the original Prompt 24 scope.
+
 Authentication answers **"Who are you?"** Authorization answers **"What are you allowed to do?"** SignalForge retains Spring Security session authentication and CSRF protection. Backend request authorization is the security boundary; React controls are presentation only.
 
 ## Roles and persistence

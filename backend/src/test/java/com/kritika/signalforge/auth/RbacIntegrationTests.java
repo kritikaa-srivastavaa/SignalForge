@@ -27,6 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 class RbacIntegrationTests {
     private static final String PASSWORD = "rbac-test-password";
+    @Autowired org.springframework.jdbc.core.JdbcTemplate jdbc;
     @Autowired MockMvc mvc;
     @Autowired ObjectMapper json;
     @Autowired AppUserRepository users;
@@ -42,6 +43,7 @@ class RbacIntegrationTests {
     private record Client(AppUser user, MockHttpSession session, String token) { }
 
     @AfterEach void cleanup() {
+        for (UUID id : userIds) jdbc.update("DELETE FROM audit_records WHERE actor_id = ?", id);
         incidents.deleteAllById(incidentIds); events.deleteAllById(eventIds); users.deleteAllById(userIds);
     }
     private AppUser create(UserRole role) {

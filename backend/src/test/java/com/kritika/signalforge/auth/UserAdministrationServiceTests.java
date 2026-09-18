@@ -16,7 +16,7 @@ class UserAdministrationServiceTests {
         when(users.findByEmail(admin.getEmail())).thenReturn(Optional.of(admin));
         when(users.findById(id)).thenReturn(Optional.of(admin));
         when(users.countByRole(UserRole.ADMIN)).thenReturn(1L);
-        var service = new UserAdministrationService(users, lock);
+        var service = new UserAdministrationService(users, lock, mock(com.kritika.signalforge.audit.AuditService.class));
         assertThatThrownBy(() -> service.changeRole(admin.getEmail(), id, UserRole.VIEWER))
                 .isInstanceOfSatisfying(ResponseStatusException.class, error -> assertThat(error.getStatusCode().value()).isEqualTo(409));
         assertThat(admin.getRole()).isEqualTo(UserRole.ADMIN);
@@ -32,7 +32,7 @@ class UserAdministrationServiceTests {
         when(users.findByEmail(actor.getEmail())).thenReturn(Optional.of(actor));
 
         when(users.countByRole(UserRole.ADMIN)).thenReturn(1L);
-        assertThatThrownBy(() -> new UserAdministrationService(users, mock(RoleChangeLock.class))
+        assertThatThrownBy(() -> new UserAdministrationService(users, mock(RoleChangeLock.class), mock(com.kritika.signalforge.audit.AuditService.class))
                 .changeRole(actor.getEmail(), id, UserRole.OPERATOR)).isInstanceOf(org.springframework.security.access.AccessDeniedException.class);
         verify(users, never()).saveAndFlush(any());
     }

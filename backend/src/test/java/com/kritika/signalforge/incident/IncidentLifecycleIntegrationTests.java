@@ -23,7 +23,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @Transactional
 class IncidentLifecycleIntegrationTests {
-	@Autowired private MockMvc mvc;
+	@Autowired private org.springframework.jdbc.core.JdbcTemplate jdbc;
+    @org.junit.jupiter.api.BeforeEach void actor() {
+        jdbc.update("INSERT INTO app_users(id,email,password_hash,display_name,created_at,role) VALUES (?, 'user', 'test-only', 'Lifecycle Test', now(), 'OPERATOR')", UUID.randomUUID());
+    }
+    @Autowired private MockMvc mvc;
 	@Autowired private IncidentRepository repository;
 	@Autowired private EntityManager entityManager;
 

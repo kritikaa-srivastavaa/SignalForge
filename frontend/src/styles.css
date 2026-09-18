@@ -189,3 +189,6 @@ input::placeholder { color: #758178; }
 .admin-user [role="alert"] { color: var(--danger); }
 .admin-user [role="status"] { color: var(--success); }
 @media (max-width: 700px) { .admin-user { flex-direction: column; gap: 12px; } }
+/* Access governance uses the existing panels, forms and tables. */
+.governance-content { padding: 1.25rem; }
+.governance-filter { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
