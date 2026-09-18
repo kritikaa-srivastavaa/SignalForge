@@ -26,7 +26,7 @@ public class AppUser {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 16)
-    private UserRole role = UserRole.VIEWER;
+    private UserRole role = UserRole.NO_ACCESS;
 
     public UserRole getRole() { return role; }
     void changeRole(UserRole role) { this.role = java.util.Objects.requireNonNull(role); }

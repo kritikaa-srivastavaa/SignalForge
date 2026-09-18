@@ -51,7 +51,7 @@ it('restores the VIEWER role and renders explicit read-only incident detail', as
   expect(screen.getByText(/Read-only access/)).toBeInTheDocument();
   expect(screen.queryByRole('button', { name: 'Acknowledge' })).not.toBeInTheDocument();
   expect(screen.queryByRole('button', { name: 'Resolve' })).not.toBeInTheDocument();
-  expect(screen.queryByRole('link', { name: 'Admin' })).not.toBeInTheDocument();
+  expect(screen.queryByRole('link', { name: 'Users' })).not.toBeInTheDocument();
   expect(screen.getByText(/VIEWER/)).toBeInTheDocument();
 });
 it.each(['OPERATOR', 'ADMIN'] as const)('%s receives lifecycle controls', async selected => {
@@ -59,7 +59,7 @@ it.each(['OPERATOR', 'ADMIN'] as const)('%s receives lifecycle controls', async 
   expect(await screen.findByRole('button', { name: 'Acknowledge' })).toBeEnabled();
   expect(screen.getByRole('button', { name: 'Resolve' })).toBeEnabled();
   expect(screen.queryByText(/Read-only access/)).not.toBeInTheDocument();
-  expect(Boolean(screen.queryByRole('link', { name: 'Admin' }))).toBe(selected === 'ADMIN');
+  expect(Boolean(screen.queryByRole('link', { name: 'Users' }))).toBe(selected === 'ADMIN');
 });
 it.each(['VIEWER', 'OPERATOR'] as const)('%s direct admin route is forbidden without fetching user data', async selected => {
   role = selected; show('/admin/users');
@@ -70,7 +70,7 @@ it.each(['VIEWER', 'OPERATOR'] as const)('%s direct admin route is forbidden wit
 it('ADMIN loads identities and current roles', async () => {
   role = 'ADMIN'; show('/admin/users');
   expect(await screen.findByRole('region', { name: 'target@example.com' })).toHaveTextContent('Current role: VIEWER');
-  expect(screen.getByRole('link', { name: 'Admin' })).toHaveAttribute('href', '/admin/users');
+  expect(screen.getByRole('link', { name: 'Users' })).toHaveAttribute('href', '/admin/users');
   expect(screen.getByRole('heading', { name: 'Users and roles' })).toBeInTheDocument();
 });
 it('changes a role using server data and credentialed CSRF-protected PATCH', async () => {
@@ -113,7 +113,7 @@ it('explains last-admin 409 without removing admin controls', async () => {
   const row = await selectRole('admin@example.com', 'VIEWER');
   await userEvent.click(within(row).getByRole('button', { name: 'Save role' }));
   expect(await within(row).findByRole('alert')).toHaveTextContent('last administrator cannot be demoted');
-  expect(screen.getByRole('link', { name: 'Admin' })).toBeInTheDocument();
+  expect(screen.getByRole('link', { name: 'Users' })).toBeInTheDocument();
   expect(row).toHaveTextContent('Current role: ADMIN');
 });
 it('immediately updates route and navigation after permitted self-demotion', async () => {
@@ -121,7 +121,7 @@ it('immediately updates route and navigation after permitted self-demotion', asy
   const row = await selectRole('admin@example.com', 'VIEWER');
   await userEvent.click(within(row).getByRole('button', { name: 'Save role' }));
   expect(await screen.findByRole('heading', { name: 'Access denied' })).toBeInTheDocument();
-  expect(screen.queryByRole('link', { name: 'Admin' })).not.toBeInTheDocument();
+  expect(screen.queryByRole('link', { name: 'Users' })).not.toBeInTheDocument();
   expect(screen.queryByRole('region', { name: 'target@example.com' })).not.toBeInTheDocument();
 });
 it('refreshes session permissions after a backend authorization rejection', async () => {
@@ -136,7 +136,7 @@ it('refreshes session permissions after a backend authorization rejection', asyn
   });
   await userEvent.click(within(row).getByRole('button', { name: 'Save role' }));
   expect(await screen.findByRole('heading', { name: 'Access denied' })).toBeInTheDocument();
-  expect(screen.queryByRole('link', { name: 'Admin' })).not.toBeInTheDocument();
+  expect(screen.queryByRole('link', { name: 'Users' })).not.toBeInTheDocument();
 });
 it('keeps a CSRF rejection distinct from a role rejection', async () => {
   role = 'ADMIN'; show('/admin/users');
@@ -146,5 +146,5 @@ it('keeps a CSRF rejection distinct from a role rejection', async () => {
     ? Promise.resolve(response({ code: 'CSRF_INVALID' }, 403)) : original(input, options));
   await userEvent.click(within(row).getByRole('button', { name: 'Save role' }));
   expect(await within(row).findByRole('alert')).toHaveTextContent('security token expired');
-  expect(screen.getByRole('link', { name: 'Admin' })).toBeInTheDocument();
+  expect(screen.getByRole('link', { name: 'Users' })).toBeInTheDocument();
 });

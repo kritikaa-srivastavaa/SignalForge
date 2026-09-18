@@ -327,12 +327,124 @@ class AccessGovernanceIntegrationTests {
         try {
             var flyway = org.flywaydb.core.Flyway.configure().dataSource(datasource)
                     .schemas(schema).defaultSchema(schema).locations("classpath:db/migration").load();
-            assertThat(flyway.migrate().migrationsExecuted).isEqualTo(8);
+            assertThat(flyway.migrate().migrationsExecuted).isEqualTo(9);
             assertThat(jdbc.queryForObject("SELECT count(*) FROM " + schema + ".access_requests", Long.class)).isZero();
             assertThat(jdbc.queryForObject("SELECT count(*) FROM " + schema + ".audit_records", Long.class)).isZero();
         } finally {
             // This unique, empty test schema is never public or a pre-existing database.
             jdbc.execute("DROP SCHEMA IF EXISTS " + schema + " CASCADE");
         }
+    }
+
+    private UserRole lower(UserRole target) { return target == UserRole.VIEWER ? UserRole.NO_ACCESS : UserRole.VIEWER; }
+    private ResultActions groupReview(Client client, UUID id, String action) throws Exception {
+        return mvc.perform(patch("/access-requests/" + id + "/" + action).session(client.session())
+                .header("X-CSRF-TOKEN", client.token()).contentType(MediaType.APPLICATION_JSON).content("{}"));
+    }
+
+    @ParameterizedTest @EnumSource(value = UserRole.class, names = {"NO_ACCESS", "VIEWER"})
+    void onlyNextLevelIsDerivedEvenWithForgedEscalation(UserRole role) throws Exception {
+        var client = login(create(role));
+        var target = role == UserRole.NO_ACCESS ? UserRole.VIEWER : UserRole.OPERATOR;
+        submit(client, "{\"requestedRole\":\"ADMIN\",\"status\":\"APPROVED\",\"reviewedBy\":\"forged\"}")
+                .andExpect(status().isCreated()).andExpect(jsonPath("$.requestedRole").value(target.name()))
+                .andExpect(jsonPath("$.requesterId").value(client.user().getId().toString()))
+                .andExpect(jsonPath("$.status").value("PENDING")).andExpect(jsonPath("$.reviewedBy").isEmpty());
+        submit(client, "{\"requestedRole\":\"OPERATOR\"}").andExpect(status().isConflict());
+    }
+
+    @Test void noAccessCannotReadIngestGovernOrReachAdminAndCsrfStillApplies() throws Exception {
+        var client = login(create(UserRole.NO_ACCESS));
+        for (String path : List.of("/events", "/events/" + UUID.randomUUID(), "/incidents", "/incidents/" + UUID.randomUUID(),
+                "/access-requests/review", "/admin/users", "/admin/access-requests", "/admin/audit"))
+            mvc.perform(get(path).session(client.session())).andExpect(status().isForbidden());
+        mvc.perform(post("/events").session(client.session()).header("X-CSRF-TOKEN", client.token())
+                .contentType(MediaType.APPLICATION_JSON).content("{}")).andExpect(status().isForbidden());
+        groupReview(client, UUID.randomUUID(), "approve").andExpect(status().isForbidden());
+        mvc.perform(post("/access-requests").session(client.session())).andExpect(status().isForbidden());
+        mvc.perform(get("/auth/me").session(client.session())).andExpect(jsonPath("$.role").value("NO_ACCESS"));
+        assertThat(requests.existsByRequesterIdAndStatus(client.user().getId(), AccessRequestStatus.PENDING)).isFalse();
+    }
+
+    @ParameterizedTest @EnumSource(value = UserRole.class, names = {"VIEWER", "OPERATOR"})
+    void exactGroupMemberApprovesWithCorrectAuditAndSessionRefresh(UserRole target) throws Exception {
+        var requester = login(create(lower(target))); var reviewer = login(create(target));
+        var request = service.create(requester.user().getEmail());
+        var otherTarget = target == UserRole.VIEWER ? UserRole.OPERATOR : UserRole.VIEWER;
+        var other = service.create(create(lower(otherTarget)).getEmail());
+        var queue = mvc.perform(get("/access-requests/review?requestedRole=" + otherTarget)
+                .session(reviewer.session())).andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        assertThat(queue).contains(request.id().toString()).doesNotContain(other.id().toString());
+        groupReview(reviewer, request.id(), "approve").andExpect(status().isOk())
+                .andExpect(jsonPath("$.requestedRole").value(target.name()))
+                .andExpect(jsonPath("$.reviewedBy").value(reviewer.user().getId().toString()));
+        mvc.perform(get("/auth/me").session(requester.session())).andExpect(jsonPath("$.role").value(target.name()));
+        mvc.perform(get("/events").session(requester.session())).andExpect(status().isOk());
+        assertThat(users.findById(requester.user().getId()).orElseThrow().getRole()).isEqualTo(target);
+        assertThat(jdbc.queryForObject("SELECT actor_id FROM audit_records WHERE action='ACCESS_REQUEST_APPROVED' AND target_id=?",
+                UUID.class, request.id())).isEqualTo(reviewer.user().getId());
+        assertThat(jdbc.queryForObject("SELECT actor_id FROM audit_records WHERE action='USER_ROLE_CHANGED' AND target_id=?",
+                UUID.class, requester.user().getId())).isEqualTo(reviewer.user().getId());
+        groupReview(reviewer, request.id(), "reject").andExpect(status().isConflict());
+    }
+
+    @ParameterizedTest @EnumSource(value = UserRole.class, names = {"VIEWER", "OPERATOR"})
+    void crossGroupAndNoAccessReviewsAreForbidden(UserRole target) throws Exception {
+        var request = service.create(create(lower(target)).getEmail());
+        for (UserRole role : List.of(target == UserRole.VIEWER ? UserRole.OPERATOR : UserRole.VIEWER, UserRole.NO_ACCESS)) {
+            var client = login(create(role));
+            groupReview(client, request.id(), "approve").andExpect(status().isForbidden());
+            groupReview(client, request.id(), "reject").andExpect(status().isForbidden());
+        }
+        assertThat(requests.findById(request.id()).orElseThrow().getStatus()).isEqualTo(AccessRequestStatus.PENDING);
+        assertThat(count(AuditAction.ACCESS_REQUEST_APPROVED, request.id())).isZero();
+    }
+
+    @ParameterizedTest @EnumSource(value = UserRole.class, names = {"VIEWER", "OPERATOR"})
+    void groupRejectionKeepsLowerAccessAndAllowsRerequest(UserRole target) throws Exception {
+        var requester = create(lower(target)); var reviewer = login(create(target));
+        var request = service.create(requester.getEmail());
+        mvc.perform(patch("/access-requests/" + request.id() + "/reject").session(reviewer.session())
+                .header("X-CSRF-TOKEN", reviewer.token()).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"reason\":\"Please clarify duties.\"}")).andExpect(status().isOk())
+                .andExpect(jsonPath("$.reviewReason").value("Please clarify duties."));
+        assertThat(users.findById(requester.getId()).orElseThrow().getRole()).isEqualTo(lower(target));
+        assertThat(service.create(requester.getEmail()).id()).isNotEqualTo(request.id());
+    }
+
+    @ParameterizedTest @EnumSource(value = UserRole.class, names = {"VIEWER", "OPERATOR"})
+    void adminSeesAllAndCanInterveneEvenWithGroupMembers(UserRole target) throws Exception {
+        create(target); // Membership never removes ADMIN oversight.
+        var admin = login(create(UserRole.ADMIN));
+        var request = service.create(create(lower(target)).getEmail());
+        var other = service.create(create(lower(target == UserRole.VIEWER ? UserRole.OPERATOR : UserRole.VIEWER)).getEmail());
+        String body = mvc.perform(get("/admin/access-requests").session(admin.session())).andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        assertThat(body).contains(request.id().toString(), other.id().toString());
+        review(admin, request.id(), "approve", "{}").andExpect(status().isOk()).andExpect(jsonPath("$.status").value("APPROVED"));
+        assertThat(users.findById(request.requesterId()).orElseThrow().getRole()).isEqualTo(target);
+    }
+
+    @ParameterizedTest @EnumSource(value = UserRole.class, names = {"VIEWER", "OPERATOR"})
+    void competingGroupReviewsHaveOneTerminalWinner(UserRole target) throws Exception {
+        var requester = create(lower(target)); var a = create(target); var b = create(target);
+        var request = service.create(requester.getEmail());
+        assertThat(race(() -> service.review(a.getEmail(), request.id(), true, null),
+                () -> service.review(b.getEmail(), request.id(), false, null))).containsExactlyInAnyOrder(200, 409);
+        var saved = requests.findById(request.id()).orElseThrow();
+        assertThat(users.findById(requester.getId()).orElseThrow().getRole()).isEqualTo(
+                saved.getStatus() == AccessRequestStatus.APPROVED ? target : lower(target));
+        assertThat(count(AuditAction.ACCESS_REQUEST_APPROVED, request.id()) + count(AuditAction.ACCESS_REQUEST_REJECTED, request.id())).isEqualTo(1);
+    }
+
+    @Test void demotedReviewerAndChangedRequesterCannotUseStaleGroupAuthority() throws Exception {
+        var requester = create(UserRole.VIEWER); var reviewer = login(create(UserRole.OPERATOR)); var admin = create(UserRole.ADMIN);
+        var request = service.create(requester.getEmail());
+        administration.changeRole(admin.getEmail(), reviewer.user().getId(), UserRole.VIEWER);
+        groupReview(reviewer, request.id(), "approve").andExpect(status().isForbidden());
+        administration.changeRole(admin.getEmail(), requester.getId(), UserRole.NO_ACCESS);
+        assertThatThrownBy(() -> service.review(admin.getEmail(), request.id(), true, null))
+                .isInstanceOfSatisfying(ResponseStatusException.class, ex -> assertThat(ex.getStatusCode().value()).isEqualTo(409));
+        assertThat(requests.findById(request.id()).orElseThrow().getStatus()).isEqualTo(AccessRequestStatus.PENDING);
     }
 }

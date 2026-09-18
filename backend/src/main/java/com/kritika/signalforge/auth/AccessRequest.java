@@ -14,7 +14,7 @@ public class AccessRequest {
     private AppUser requester;
     @Enumerated(EnumType.STRING)
     @Column(name = "requested_role", nullable = false, updatable = false, length = 16)
-    private UserRole requestedRole = UserRole.OPERATOR;
+    private UserRole requestedRole;
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 16)
     private AccessRequestStatus status = AccessRequestStatus.PENDING;
@@ -30,7 +30,9 @@ public class AccessRequest {
     @Version private long version;
 
     protected AccessRequest() { }
-    AccessRequest(AppUser requester) { this.requester = requester; }
+    AccessRequest(AppUser requester, UserRole requestedRole) {
+        this.requester = requester; this.requestedRole = requestedRole;
+    }
     @PrePersist private void onCreate() { createdAt = Instant.now(); }
 
     void review(AccessRequestStatus status, AppUser reviewer, String reason) {

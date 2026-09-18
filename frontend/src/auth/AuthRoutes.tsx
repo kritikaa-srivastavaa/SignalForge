@@ -5,7 +5,7 @@ import { AuthPage } from '../pages/AuthPage';
 
 // Only known application routes may be restored; never redirect to supplied external URLs.
 export function safeDestination(value: unknown): string {
-  return typeof value === 'string' && /^(\/$|\/access$|\/admin\/(users|access-requests|audit)$|\/events$|\/incidents$|\/incidents\/[0-9a-f-]+$)/i.test(value) ? value : '/';
+  return typeof value === 'string' && /^(\/$|\/access(?:\/review)?$|\/admin\/(users|access-requests|audit)$|\/events$|\/incidents$|\/incidents\/[0-9a-f-]+$)/i.test(value) ? value : '/';
 }
 
 export function AuthRoutes({ children }: { children: ReactNode }) {
@@ -14,6 +14,7 @@ export function AuthRoutes({ children }: { children: ReactNode }) {
   if (loading) return <div className="state" role="status">Checking your session…</div>;
   if (error) return <div className="state" role="alert"><p>{error}</p><button className="button primary" onClick={refreshUser}>Retry</button></div>;
   if (user) {
+    if (user.role === 'NO_ACCESS' && location.pathname !== '/access') return <Navigate to="/access" replace />;
     if (location.pathname === '/login' || location.pathname === '/register') {
       return <Navigate to={safeDestination(location.state?.from)} replace />;
     }

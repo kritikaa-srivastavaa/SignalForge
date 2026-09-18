@@ -1,3 +1,4 @@
+import { SignalMark } from '../components/SignalMark';
 import { useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
 import { useAuth } from '../auth/AuthProvider';
@@ -41,9 +42,9 @@ export function AuthPage({ register = false }: { register?: boolean }) {
   }
 
   return <main className="auth-page"><section className="auth-card">
-    <p className="eyebrow">SIGNALFORGE</p>
+    <div className="auth-brand"><SignalMark />SignalForge</div>
     <h1>{register ? 'Create account' : 'Log in'}</h1>
-    <p className="subtle">{register ? 'Create your local SignalForge account, then log in.' : 'Log in to open your operations console.'}</p>
+    <p className="subtle">{register ? 'New accounts start without operational access. Request Viewer access after logging in.' : 'Access the operations console.'}</p>
     {location.state?.registered && !register && <p role="status">Account created. Log in to continue.</p>}
     <form onSubmit={submit} aria-busy={pending}>
       {register && <label>Display name<input required maxLength={100} autoComplete="name" value={displayName} onChange={event => setDisplayName(event.target.value)} /></label>}

@@ -33,7 +33,7 @@ export function Access() {
   // Applying the response outside rendering keeps navigation consistent with /auth/me.
   const syncRole = () => { if (data?.current) updateCurrentUser(data.current); };
   return <>
-    <PageHeader title="My access" description="OPERATOR access permits acknowledging and resolving incidents."
+    <PageHeader title={current?.role === 'NO_ACCESS' ? 'Viewer access required' : 'My access'} description={current?.role === 'NO_ACCESS' ? "Your account is active. Request VIEWER access to inspect operational data." : "OPERATOR access permits acknowledging and resolving incidents."}
       loading={loading} onRefresh={reload} />
     <Panel title="Operational access">
       {loading ? <LoadingState /> : error ? <ErrorState resource="access request" detail={error} retry={reload} /> :
@@ -52,16 +52,18 @@ function AccessState({ currentRole, data, syncRole, pending, submit }: {
 }) {
   useEffect(() => { syncRole(); }, [data]); // Sync only after a fresh server response.
   const request = data?.request;
+  const nextRole = currentRole === 'NO_ACCESS' ? 'Viewer' : 'Operator';
+  const eligible = currentRole === 'NO_ACCESS' || currentRole === 'VIEWER';
   return <div className="governance-content">
-    {currentRole !== 'VIEWER' ? <p role="status">You have operational access ({currentRole}).</p> :
+    {currentRole === 'NO_ACCESS' ? <p>Your account does not currently have access to SignalForge operational data.</p> : currentRole !== 'VIEWER' ? <p role="status">You have operational access ({currentRole}).</p> :
       <p>Read-only access: you can view events and incidents. Request OPERATOR access to manage incident lifecycles.</p>}
     {request && <div role="status">
       <strong>{request.status === 'PENDING' ? 'Access request pending' : request.status === 'APPROVED' ? 'Access request approved' : 'Access request rejected'}</strong>
       <p>Requested {formatTime(request.createdAt)}{request.reviewedAt && ` · Reviewed ${formatTime(request.reviewedAt)}`}</p>
       {request.reviewReason && <p>{request.reviewReason}</p>}
     </div>}
-    {currentRole === 'VIEWER' && request?.status !== 'PENDING' &&
-      <button className="button primary" onClick={submit} disabled={pending}>{pending ? 'Requesting...' : 'Request Operator Access'}</button>}
+    {eligible && request?.status !== 'PENDING' &&
+      <button className="button primary" onClick={submit} disabled={pending}>{pending ? 'Requesting...' : `Request ${nextRole} Access`}</button>}
     {currentRole === 'VIEWER' && request?.status === 'APPROVED' &&
       <p>Your current role is VIEWER. A historical approval does not override a later administrative role change.</p>}
     <p className="subtle">Use Refresh to check a review decision and update your session role without logging in again.</p>

@@ -3,7 +3,7 @@ import type { PageResponse } from '../types';
 
 export type AccessStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
 export interface AccessRequest {
-  id: string; requesterId: string; requesterEmail: string; requestedRole: 'OPERATOR';
+  id: string; requesterId: string; requesterEmail: string; requestedRole: 'VIEWER' | 'OPERATOR';
   status: AccessStatus; createdAt: string; reviewedAt: string | null;
   reviewedBy: string | null; reviewReason: string | null;
 }
@@ -23,3 +23,8 @@ export const approveRequest = (id: string) => patch<AccessRequest>(`/admin/acces
 export const rejectRequest = (id: string, reason: string) => patchJson<AccessRequest>(`/admin/access-requests/${id}/reject`, { reason });
 export const getAudit = (action: AuditAction | '', page: number, signal?: AbortSignal) =>
   get<PageResponse<AuditRecord>>('/admin/audit', { action, page, size: 20 }, signal);
+
+export const getGroupRequests = (page: number, signal?: AbortSignal) =>
+  get<PageResponse<AccessRequest>>('/access-requests/review', { page, size: 20 }, signal);
+export const approveGroupRequest = (id: string) => patch<AccessRequest>(`/access-requests/${id}/approve`);
+export const rejectGroupRequest = (id: string, reason: string) => patchJson<AccessRequest>(`/access-requests/${id}/reject`, { reason });

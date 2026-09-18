@@ -13,7 +13,7 @@ export function Overview() {
     const [events, incidents, open, acknowledged, resolved] = await Promise.all([
       getEvents({ page: 0, size: 5 }, signal),
       getIncidents({ page: 0, size: 5 }, signal),
-      getIncidents({ page: 0, size: 1, status: 'OPEN' }, signal),
+      getIncidents({ page: 0, size: 5, status: 'OPEN' }, signal),
       getIncidents({ page: 0, size: 1, status: 'ACKNOWLEDGED' }, signal),
       getIncidents({ page: 0, size: 1, status: 'RESOLVED' }, signal),
     ]);
@@ -21,20 +21,23 @@ export function Overview() {
   }, []);
   const { data, error, loading, reload } = useRemote(load);
   return <>
-    <PageHeader title="Overview" description="A clear view of the events and incidents across your services." onRefresh={reload} loading={loading} />
+    <PageHeader title="Overview" description="Incidents requiring attention and recent telemetry across your services." onRefresh={reload} loading={loading} />
     {loading ? <LoadingState /> : error ? <ErrorState resource="overview" detail={error} retry={reload} /> : data && <>
       <div className="summary-grid">
         {[
-          { label: 'Total Events', count: data.events.totalElements, note: 'Telemetry received', tone: '' },
-          { label: 'Total Incidents', count: data.incidents.totalElements, note: 'Across all statuses', tone: '' },
           { label: 'Open', count: data.open.totalElements, note: 'Awaiting attention', tone: 'danger' },
           { label: 'Acknowledged', count: data.acknowledged.totalElements, note: 'Under investigation', tone: 'warning' },
           { label: 'Resolved', count: data.resolved.totalElements, note: 'Marked as resolved', tone: 'success' },
+          { label: 'Total Events', count: data.events.totalElements, note: 'Telemetry received', tone: '' },
+          { label: 'Total Incidents', count: data.incidents.totalElements, note: 'Across all statuses', tone: '' },
         ].map(card => <section className={`summary-card ${card.tone}`} aria-label={card.label} key={card.label}>
           <h2>{card.label}</h2><strong>{formatCount(card.count)}</strong><span>{card.note}</span>
         </section>)}
       </div>
-      <div className="section-intro"><div><p className="eyebrow">LATEST ACTIVITY</p><h2>What’s happening</h2></div><span className="subtle">Times shown in {timeZone}</span></div>
+      <Panel title="Needs attention" action={<Link className="text-link" to="/incidents">Inspect incidents</Link>}>
+        {data.open.content.length ? <IncidentsTable incidents={data.open.content} compact /> : <div className="state"><strong>No open incidents</strong><p>No incidents are currently awaiting attention.</p></div>}
+      </Panel>
+      <div className="section-intro"><div><p className="eyebrow">LATEST ACTIVITY</p><h2>Recent activity</h2></div><span className="subtle">Times shown in {timeZone}</span></div>
       <Panel title="Recent Incidents" action={<Link className="text-link" to="/incidents">View all incidents <span aria-hidden="true">↗</span></Link>}>
         {data.incidents.content.length ? <IncidentsTable incidents={data.incidents.content} compact /> : <EmptyState resource="incidents" />}
       </Panel>

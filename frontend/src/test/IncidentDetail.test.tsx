@@ -37,7 +37,7 @@ it('loads real detail fields and offers both OPEN actions', async () => {
   show();
   expect(await screen.findByRole('heading', { name: incident.title })).toBeInTheDocument();
   for (const value of [incident.id, incident.sourceEventId, incident.service, incident.type, incident.severity, 'OPEN', formatTime(incident.createdAt)]) {
-    expect(screen.getByText(value)).toBeInTheDocument();
+    expect(screen.getAllByText(value).length).toBeGreaterThan(0);
   }
   expect(screen.getByRole('button', { name: 'Acknowledge' })).toBeEnabled();
   expect(screen.getByRole('button', { name: 'Resolve' })).toBeEnabled();

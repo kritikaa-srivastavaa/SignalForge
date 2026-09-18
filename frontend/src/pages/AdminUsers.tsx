@@ -2,7 +2,7 @@ import { useCallback, useRef, useState } from 'react';
 import { useAuth } from '../auth/AuthProvider';
 import { canManageUsers } from '../auth/permissions';
 import { Forbidden } from '../components/Forbidden';
-import { ErrorState, LoadingState, Panel } from '../components/Shared';
+import { ErrorState, LoadingState, Panel, PageHeader } from '../components/Shared';
 import { changeUserRole, getUsers } from '../api/users';
 import { ApiError } from '../api/client';
 import { useRemote } from '../hooks/useRemote';
@@ -17,11 +17,10 @@ function UserList() {
   const load = useCallback((signal: AbortSignal) => getUsers(signal), []);
   const { data, loading, error, reload } = useRemote(load);
   return <>
-    <header className="page-header"><div><p className="eyebrow">ADMINISTRATION</p><h1>Users and roles</h1>
-      <p className="subtle">Manage access to the operations console.</p></div></header>
+    <PageHeader title="Users and roles" description="Manage access to the operations console." onRefresh={reload} loading={loading} />
     <Panel title="Application users">
       {loading ? <LoadingState /> : error ? <ErrorState resource="users" detail={error} retry={reload} /> :
-        <div className="admin-users">{data?.map(user => <UserRow key={user.id} initialUser={user} />)}</div>}
+        <div className="admin-users"><div className="admin-user admin-list-header" aria-hidden="true"><span>User</span><span>Role</span><span>Created</span><span>Actions</span></div>{data?.map(user => <UserRow key={user.id} initialUser={user} />)}</div>}
     </Panel>
   </>;
 }
@@ -51,12 +50,12 @@ function UserRow({ initialUser }: { initialUser: User }) {
   }
   return <section className="admin-user" aria-label={user.email}>
     <div><strong>{user.displayName}</strong><p>{user.email}</p>
-      <p className="subtle">Current role: {user.role} · Created {formatTime(user.createdAt)}</p></div>
+      </div><div><span className="subtle">Current role: {user.role}</span></div><div className="date">{formatTime(user.createdAt)}</div>
     <form onSubmit={save} aria-busy={pending}>
       <label htmlFor={'role-' + user.id}>Role for {user.email}</label>
       <div className="detail-buttons">
         <select id={'role-' + user.id} value={role} disabled={pending} onChange={event => setRole(event.target.value as UserRole)}>
-          <option value="VIEWER">VIEWER</option><option value="OPERATOR">OPERATOR</option><option value="ADMIN">ADMIN</option>
+          <option value="NO_ACCESS">NO_ACCESS</option><option value="VIEWER">VIEWER</option><option value="OPERATOR">OPERATOR</option><option value="ADMIN">ADMIN</option>
         </select>
         <button className="button primary" type="submit" disabled={pending || role === user.role}>{pending ? 'Saving…' : 'Save role'}</button>
       </div>

@@ -81,7 +81,7 @@ class AuthenticationIntegrationTests {
         String body = register("  " + email.toUpperCase(Locale.ROOT) + "  ", PASSWORD, "  Test User  ")
                 .andExpect(status().isCreated()).andExpect(jsonPath("$.id").isNotEmpty())
                 .andExpect(jsonPath("$.email").value(email)).andExpect(jsonPath("$.displayName").value("Test User"))
-                .andExpect(jsonPath("$.createdAt").isNotEmpty()).andReturn().getResponse().getContentAsString();
+                .andExpect(jsonPath("$.createdAt").isNotEmpty()).andExpect(jsonPath("$.role").value("NO_ACCESS")).andReturn().getResponse().getContentAsString();
         assertThat(json.readTree(body).size()).isEqualTo(5);
         var user = users.findByEmail(email).orElseThrow();
         assertThat(user.getPasswordHash()).isNotEqualTo(PASSWORD).startsWith("$2");
@@ -172,6 +172,8 @@ class AuthenticationIntegrationTests {
 
     @Test void authenticatedMutationRequiresValidCsrfAndPersistsSubmittedData() throws Exception {
         Client client = login();
+        var viewer = users.findByEmail(email).orElseThrow();
+        viewer.changeRole(UserRole.VIEWER); users.saveAndFlush(viewer);
         String body = json.writeValueAsString(Map.of("service", email, "type", "AUTH_TEST", "severity", "HIGH",
                 "message", "Authenticated event", "timestamp", "2026-09-17T10:00:00Z"));
         mvc.perform(post("/events").session(client.session()).contentType(MediaType.APPLICATION_JSON).content(body))

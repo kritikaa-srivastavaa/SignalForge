@@ -34,13 +34,14 @@ beforeEach(() => {
     if (path === '/access-requests/me') return latest ? response(latest) : response(null, 204);
     if (options?.method === 'POST' && path === '/access-requests') {
       if (failure) return response({}, failure);
-      latest = { ...request(), requesterId: userId }; return response(latest, 201);
+      latest = { ...request(), requesterId: userId, requestedRole: role === 'NO_ACCESS' ? 'VIEWER' : 'OPERATOR' }; return response(latest, 201);
     }
     if (options?.method === 'PATCH') {
       if (failure) return response({}, failure);
       const saved = { ...queue[0], status: (path.endsWith('/approve') ? 'APPROVED' : 'REJECTED') as AccessStatus };
       queue = []; return response(saved);
     }
+    if (path === '/access-requests/review') return response(page(queue.filter(r => r.requestedRole === role)));
     if (path === '/admin/access-requests') return response(page(queue));
     if (path === '/admin/audit') return response(page([{
       id: 'audit-' + (url.searchParams.get('page') ?? '0'), actorId: userId, actorEmail: 'admin@example.com',
@@ -56,7 +57,8 @@ const mutations = () => fetchMock.mock.calls.filter(([, options]) => ['POST', 'P
 
 it('eligible VIEWER sees read-only explanation and requests only OPERATOR through CSRF transport', async () => {
   show();
-  await userEvent.click(await screen.findByRole('button', { name: 'Request Operator Access' }));
+  // The first async render can be slow on the Windows/Docker development machine.
+  await userEvent.click(await screen.findByRole('button', { name: 'Request Operator Access' }, { timeout: 5000 }));
   expect(await screen.findByText('Access request pending')).toBeInTheDocument();
   expect(screen.queryByRole('button', { name: 'Request Operator Access' })).not.toBeInTheDocument();
   expect(mutations()).toHaveLength(1);
@@ -118,7 +120,7 @@ it.each(['/admin/access-requests', '/admin/audit'])('VIEWER direct %s route is f
   show(path);
   expect(await screen.findByRole('heading', { name: 'Access denied' })).toBeInTheDocument();
   expect(fetchMock.mock.calls.some(([input]) => new URL(String(input)).pathname === path)).toBe(false);
-  expect(screen.queryByRole('link', { name: 'Access Requests' })).not.toBeInTheDocument();
+  expect(screen.getByRole('link', { name: 'Access Requests' })).toHaveAttribute('href', '/access/review');
   expect(screen.queryByRole('link', { name: 'Audit Log' })).not.toBeInTheDocument();
 });
 it.each(['/admin/access-requests', '/admin/audit'])('OPERATOR direct %s route is forbidden', async path => {
@@ -184,4 +186,60 @@ it('audit viewer renders deliberate fields with pagination and action filter', a
   await userEvent.selectOptions(screen.getByLabelText('Audit action'), 'USER_ROLE_CHANGED');
   expect(await screen.findByText('Page 1 of 2')).toBeInTheDocument();
   expect(fetchMock.mock.calls.some(([input]) => String(input).includes('action=USER_ROLE_CHANGED'))).toBe(true);
+});
+
+it.each(['/', '/events', '/incidents', '/incidents/00000000-0000-0000-0000-000000000001', '/admin/users', '/access/review'])
+  ('NO_ACCESS redirects %s to admission without operational reads', async path => {
+    role = 'NO_ACCESS'; show(path);
+    expect(await screen.findByRole('heading', { name: 'Viewer access required' }, { timeout: 5000 })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Request Viewer Access' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Events' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Incidents' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Access Requests' })).not.toBeInTheDocument();
+    expect(fetchMock.mock.calls.some(([url]) => /\/(events|incidents|admin|access-requests\/review)(\/|\?|$)/.test(new URL(String(url)).pathname))).toBe(false);
+  });
+
+it('NO_ACCESS requests VIEWER with server-owned fields and pending state', async () => {
+  role = 'NO_ACCESS'; show();
+  await userEvent.click(await screen.findByRole('button', { name: 'Request Viewer Access' }, { timeout: 5000 }));
+  expect(await screen.findByText('Access request pending')).toBeInTheDocument();
+  expect(latest?.requestedRole).toBe('VIEWER');
+  expect(mutations()).toHaveLength(1);
+  expect(mutations()[0][1]?.body).toBeUndefined();
+  expect(new Headers(mutations()[0][1]?.headers).get('X-CSRF-TOKEN')).toBe('csrf-test');
+});
+
+it.each(['VIEWER', 'OPERATOR'] as const)('%s reviews only its group through non-admin APIs', async target => {
+  role = target;
+  queue = [{ ...request(), requestedRole: target }, { ...request(), id: 'other-request',
+    requesterEmail: 'other@example.com', requestedRole: target === 'VIEWER' ? 'OPERATOR' : 'VIEWER' }];
+  show('/access/review');
+  const row = await screen.findByRole('region', { name: 'requester@example.com' }, { timeout: 5000 });
+  expect(screen.queryByText('other@example.com')).not.toBeInTheDocument();
+  expect(screen.queryByLabelText('Request status')).not.toBeInTheDocument();
+  expect(screen.getByRole('link', { name: 'Access Requests' })).toHaveAttribute('href', '/access/review');
+  expect(screen.queryByRole('link', { name: 'Users' })).not.toBeInTheDocument();
+  expect(screen.queryByRole('link', { name: 'Audit Log' })).not.toBeInTheDocument();
+  await userEvent.click(within(row).getByRole('button', { name: 'Approve' }));
+  await waitFor(() => expect(mutations()).toHaveLength(1));
+  expect(String(mutations()[0][0])).toContain('/access-requests/' + requestId + '/approve');
+  expect(String(mutations()[0][0])).not.toContain('/admin/');
+  expect(new Headers(mutations()[0][1]?.headers).get('X-CSRF-TOKEN')).toBe('csrf-test');
+});
+
+it('NO_ACCESS refreshes its session presentation after VIEWER approval', async () => {
+  role = 'NO_ACCESS'; latest = { ...request(), requestedRole: 'VIEWER' }; show();
+  expect(await screen.findByText('Access request pending', {}, { timeout: 5000 })).toBeInTheDocument();
+  role = 'VIEWER'; latest = { ...latest, status: 'APPROVED' };
+  await userEvent.click(screen.getByRole('button', { name: 'Refresh' }));
+  expect(await screen.findByRole('button', { name: 'Request Operator Access' })).toBeInTheDocument();
+  expect(screen.getByRole('link', { name: 'Events' })).toBeInTheDocument();
+});
+
+it('rejected VIEWER admission keeps NO_ACCESS and permits a new VIEWER request', async () => {
+  role = 'NO_ACCESS'; latest = { ...request('REJECTED'), requestedRole: 'VIEWER' }; show();
+  expect(await screen.findByText('Access request rejected', {}, { timeout: 5000 })).toBeInTheDocument();
+  await userEvent.click(screen.getByRole('button', { name: 'Request Viewer Access' }));
+  expect(await screen.findByText('Access request pending')).toBeInTheDocument();
+  expect(screen.queryByRole('link', { name: 'Events' })).not.toBeInTheDocument();
 });

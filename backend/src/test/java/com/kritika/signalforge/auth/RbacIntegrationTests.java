@@ -71,12 +71,12 @@ class RbacIntegrationTests {
     }
 
     @ParameterizedTest @EnumSource(UserRole.class)
-    void everyRoleReadsEventsAndIncidentsAndRestoresCurrentRole(UserRole role) throws Exception {
+    void operationalRolesReadAndNoAccessIsDeniedWithCurrentRole(UserRole role) throws Exception {
         var client = login(create(role)); var incident = incident();
         var event = events.saveAndFlush(new Event("rbac-test", "RBAC_TEST", "HIGH", "Read test", Instant.now()));
         eventIds.add(event.getId());
         for (String path : List.of("/events", "/events/" + event.getId(), "/incidents", "/incidents/" + incident.getId())) {
-            mvc.perform(get(path).session(client.session())).andExpect(status().isOk());
+            mvc.perform(get(path).session(client.session())).andExpect(role == UserRole.NO_ACCESS ? status().isForbidden() : status().isOk());
         }
         mvc.perform(get("/auth/me").session(client.session())).andExpect(jsonPath("$.role").value(role.name()));
         assertThat(users.findById(client.user().getId()).orElseThrow().getRole()).isEqualTo(role);
@@ -88,14 +88,14 @@ class RbacIntegrationTests {
         for (String action : List.of("acknowledge", "resolve")) {
             var result = mvc.perform(patch("/incidents/" + incident.getId() + "/" + action)
                     .session(client.session()).header("X-CSRF-TOKEN", client.token()));
-            if (role == UserRole.VIEWER) result.andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("FORBIDDEN"));
+            if (role == UserRole.VIEWER || role == UserRole.NO_ACCESS) result.andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("FORBIDDEN"));
             else result.andExpect(status().isOk()).andExpect(jsonPath("$.status").value(action.equals("resolve") ? "RESOLVED" : "ACKNOWLEDGED"));
         }
         assertThat(incidents.findById(incident.getId()).orElseThrow().getStatus())
-                .isEqualTo(role == UserRole.VIEWER ? IncidentStatus.OPEN : IncidentStatus.RESOLVED);
+                .isEqualTo((role == UserRole.VIEWER || role == UserRole.NO_ACCESS) ? IncidentStatus.OPEN : IncidentStatus.RESOLVED);
     }
 
-    @ParameterizedTest @EnumSource(value = UserRole.class, names = {"VIEWER", "OPERATOR"})
+    @ParameterizedTest @EnumSource(value = UserRole.class, names = {"NO_ACCESS", "VIEWER", "OPERATOR"})
     void nonAdminsCannotListOrChangeTheirOwnOrAnotherRole(UserRole role) throws Exception {
         var actor = login(create(role)); var target = create(UserRole.VIEWER);
         mvc.perform(get("/admin/users").session(actor.session())).andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("FORBIDDEN"));
@@ -109,7 +109,7 @@ class RbacIntegrationTests {
         var admin = login(create(UserRole.ADMIN)); var target = create(UserRole.VIEWER);
         mvc.perform(get("/admin/users").session(admin.session())).andExpect(status().isOk())
                 .andExpect(jsonPath("$[*].passwordHash").isEmpty()).andExpect(jsonPath("$[*].password").isEmpty());
-        for (UserRole role : List.of(UserRole.OPERATOR, UserRole.VIEWER, UserRole.ADMIN)) {
+        for (UserRole role : List.of(UserRole.NO_ACCESS, UserRole.OPERATOR, UserRole.VIEWER, UserRole.ADMIN)) {
             role(admin, target.getId(), "\"" + role + "\"").andExpect(status().isOk()).andExpect(jsonPath("$.role").value(role.name()));
         }
     }
@@ -147,8 +147,8 @@ class RbacIntegrationTests {
             mvc.perform(post("/auth/register").session(session).header("X-CSRF-TOKEN", token)
                     .contentType(MediaType.APPLICATION_JSON).content(json.writeValueAsString(Map.of(
                             "email", email, "password", PASSWORD, "displayName", "Test", "role", requested))))
-                    .andExpect(status().isCreated()).andExpect(jsonPath("$.role").value("VIEWER"));
-            assertThat(users.findByEmail(email).orElseThrow().getRole()).isEqualTo(UserRole.VIEWER);
+                    .andExpect(status().isCreated()).andExpect(jsonPath("$.role").value("NO_ACCESS"));
+            assertThat(users.findByEmail(email).orElseThrow().getRole()).isEqualTo(UserRole.NO_ACCESS);
         } finally { users.findByEmail(email).ifPresent(user -> userIds.add(user.getId())); }
     }
 

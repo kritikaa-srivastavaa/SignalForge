@@ -81,12 +81,15 @@ public class SecurityConfig {
                         .requestMatchers(org.springframework.http.HttpMethod.POST,
                                 "/auth/register", "/auth/login").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/access-requests/review").hasAnyRole("VIEWER", "OPERATOR")
+                        .requestMatchers(org.springframework.http.HttpMethod.PATCH, "/access-requests/*/approve", "/access-requests/*/reject")
+                            .hasAnyRole("VIEWER", "OPERATOR", "ADMIN")
                         .requestMatchers(org.springframework.http.HttpMethod.PATCH,
                                 "/incidents/*/acknowledge", "/incidents/*/resolve").hasAnyRole("OPERATOR", "ADMIN")
                         .requestMatchers(org.springframework.http.HttpMethod.GET,
                                 "/events", "/events/**", "/incidents", "/incidents/**").hasAnyRole("VIEWER", "OPERATOR", "ADMIN")
-                        // Preserve Prompt 23 ingestion authentication; human roles are not machine credentials.
-                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/events").authenticated()
+                        // Accounts without admission cannot ingest or inspect operational data.
+                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/events").hasAnyRole("VIEWER", "OPERATOR", "ADMIN")
                         .anyRequest().authenticated())
                 .exceptionHandling(errors -> errors
                         .authenticationEntryPoint((request, response, failure) -> json(response, 401, "Authentication required"))

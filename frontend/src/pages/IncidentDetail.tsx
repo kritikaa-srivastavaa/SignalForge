@@ -148,7 +148,7 @@ function IncidentDetailContent({ id }: { id: string }) {
       <h1>Incident not found</h1><p>The incident may no longer exist or the link may be invalid.</p>
     </section> : loadError ? <ErrorState resource="incident" detail={loadError} retry={() => void load()} /> : incident && <>
       <header className="page-header detail-heading">
-        <div><p className="eyebrow">INCIDENTS / {incident.id.slice(0, 8)}</p><h1>{incident.title}</h1><StatusBadge value={incident.status} /></div>
+        <div><div className="detail-status"><SeverityBadge value={incident.severity} /><StatusBadge value={incident.status} /></div><h1>{incident.title}</h1><p className="detail-context"><code>{incident.service}</code> / <code>{incident.type}</code></p></div>
         <button className="button secondary" disabled={pending !== null} onClick={() => void load()}>Refresh</button>
       </header>
       <Panel title="Incident details" action={<span className="subtle">Times shown in {timeZone}</span>}>
