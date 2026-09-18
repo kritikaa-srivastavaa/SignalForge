@@ -1,70 +1,128 @@
 # SignalForge
-Distributed event-processing and incident-detection platform built with Java, Spring Boot, Kafka, PostgreSQL, and Docker.
 
-## Development modes
+A distributed event-processing and incident-detection platform built with Java/Spring Boot, Kafka, PostgreSQL, React, Docker, and Prometheus/Grafana. V1 is a single backend application with asynchronous processing, backed by a six-service local stack.
 
-**Full Docker stack (all six services):** Stop any host Vite server on port 5173 and host backend on port 8080, then run `docker compose up -d --build` from the repository root. Open the [SignalForge UI](http://localhost:5173); no separate Vite server is required. Nginx serves the built React app and forwards same-origin `/api/*` requests to `backend:8080/*`, stripping `/api` and preserving methods and query strings. Direct React route URLs fall back to `index.html`. The backend image builds with Maven/Java 21 inside Docker; no host Java or Maven is needed. Compose injects `jdbc:postgresql://postgres:5432/signalforge`, `kafka:29092`, and the JVM timezone `Asia/Kolkata`. The backend waits for PostgreSQL's `pg_isready` and Kafka's broker API healthcheck before starting. Its own healthcheck requests `/actuator/health`; dependency health gates startup, not ongoing availability. Flyway runs normally at application startup. The frontend waits for a healthy backend and checks its own static app using `wget -q -O /dev/null http://127.0.0.1/index.html` every 15 seconds.
+## What SignalForge Does
 
-**Backend on Windows, infrastructure in Docker:** Run `docker compose stop frontend backend` to free port 8080, then `docker compose up -d postgres kafka prometheus grafana`. Run `cd backend` and `.\mvnw.cmd spring-boot:run '-Dspring-boot.run.jvmArguments=-Duser.timezone=Asia/Kolkata'`. The existing application defaults use PostgreSQL at `localhost:5433` and Kafka at `localhost:9092`; Kafka advertises separate internal and host listeners. Prometheus remains configured for `backend:8080`, so it will report the backend target DOWN in host mode; host-backend observability is not automatically supported.
+Applications send telemetry events ? the API persists and publishes them ? a Kafka listener processes them ? rolling-window detection creates incidents ? operators investigate, acknowledge, and resolve incidents. The operations console and metrics dashboard provide visibility.
 
-Run the full tests separately from the image build: from `backend`, use `.\mvnw.cmd '-Duser.timezone=Asia/Kolkata' verify` with PostgreSQL and Kafka running. The Docker image build skips test execution because integration tests require those external services.
+## Architecture
 
-Useful commands: `docker compose ps`, `docker compose logs -f frontend`, `docker compose logs -f backend`. Logs go to the container console. Kafka retains its existing local-development storage configuration: broker records are in the container's `/tmp/kafka-logs`, so recreating the Kafka container resets its records and offsets. Durable Kafka storage is not introduced here.
-
-## Local observability
-
-1. Check [backend health](http://localhost:8080/actuator/health) for status `UP` (backend URL: http://localhost:8080).
-2. Open [Prometheus](http://localhost:9090) or [its targets page](http://localhost:9090/targets) and confirm `signalforge` is **UP** in full Docker mode. It scrapes `backend:8080/actuator/prometheus` every 15 seconds over the Compose network.
-3. Open [Grafana](http://localhost:3000), sign in with local-only credentials **admin / admin** (skip the initial password-change prompt if shown), and open **SignalForge Overview** under Dashboards. The Prometheus datasource and dashboard are provisioned automatically; Grafana connects to `http://prometheus:9090` inside Docker.
-
-The dashboard refreshes every 5 seconds and defaults to the last 15 minutes. Send events through the existing API and allow at least two scrapes for rate/increase panels to populate. Totals are estimated counter increases over the selected range, not database row counts; newly created series may miss their first increment. Unused aggregate business metrics display zero, while grouped panels may show No data until a labeled series exists. Check the Prometheus target before interpreting zero as inactivity.
-
-Prometheus and Grafana use named volumes. Prometheus uses its default 15-day retention. Do not use `docker compose down -v` if you want to preserve local database and monitoring data.
-
-## Frontend development
-
-For host development, use Node.js 24 LTS. Run `docker compose stop frontend` to free port 5173, then `docker compose up -d backend postgres kafka prometheus grafana`. Run Vite separately:
-
-```powershell
-cd frontend
-npm ci
-npm run dev
+```mermaid
+flowchart LR
+    Apps[Applications] --> API
+    UI[React console / Nginx] --> API
+    subgraph Backend[One Spring Boot application]
+        API[REST API]
+        Processor[Kafka event processor]
+        Processor --> Detector[Incident detector]
+    end
+    API -->|persist event| DB[(PostgreSQL)]
+    API -->|publish event| Kafka[Kafka]
+    Kafka -->|consume| Processor
+    Processor -->|idempotency marker| DB
+    Detector -->|incident| DB
+    Prom[Prometheus] -->|scrape metrics| Backend
+    Grafana[Grafana] -->|query| Prom
 ```
 
-Open http://localhost:5173. Overview shows actual totals and recent records; Events and Incidents support exact-match filters and server pagination. Apply or clear filters to reset to page 1. Severity accepts arbitrary values, with HIGH/MEDIUM/LOW suggestions. Use View on an incident to open its detail page. OPEN incidents can be acknowledged or resolved; ACKNOWLEDGED incidents can be resolved. Resolve requires confirmation. RESOLVED incidents have no further actions. Changes use the server response; conflicts load the latest state without automatically retrying. Refresh checks for external changes, and returning to Incidents or Overview fetches current records/counts.
+The API-to-processor relationship is asynchronous through Kafka; no separate processor microservice is deployed. [Architecture and trade-offs](docs/ARCHITECTURE.md).
 
-In host development, the frontend calls http://localhost:8080 directly using `VITE_API_BASE_URL` (that is also the default). Copy `frontend/.env.example` to `frontend/.env` to change it, then restart Vite. No development proxy is used. Backend CORS permits only `http://localhost:5173`, with credentials, for the application GET/POST/PATCH and authentication endpoints described in the [authentication note](docs/security/AUTHENTICATION.md); a different frontend origin needs a deliberate CORS update. Do not use `127.0.0.1:5173` as the browser origin for this configuration.
+## Key Engineering Features
 
-Run `npm run test` for behavioral tests and `npm run build` for strict TypeScript checking and a production build. No lint script is configured. Counts are snapshots refreshed through the Refresh button; Grafana remains the metrics dashboard.
+- Kafka JSON event processing, durable UUID idempotency markers, bounded retries and dead-letter handling.
+- Rolling-window spike detection and OPEN ? ACKNOWLEDGED ? RESOLVED incident lifecycle.
+- Paginated, filtered reads, database indexes, local rate limiting, and optimistic locking.
+- Prometheus business metrics and a provisioned Grafana dashboard.
+- Dockerized backend, frontend, PostgreSQL, Kafka, Prometheus, and Grafana.
+- Session authentication, CSRF protection, server-enforced RBAC, delegated access governance, and audit records.
+- Responsive React operations console with operational and governance views.
 
-The frontend Dockerfile uses a Node 24 build stage with `npm ci` and an Nginx-only runtime. Its build argument `VITE_API_BASE_URL` defaults to `/api`; Vite compiles that value into the bundle. Runtime environment changes do not alter it: rebuild the image to change the value. Local `.env*` files are excluded from the Docker build. No backend CORS extension is needed for the same-origin container workflow.
+## Access Model
 
-To return to the containerized UI, stop Vite and run `docker compose up -d --build`. Useful verification commands are `docker compose config` and `docker compose build frontend`. The host URLs remain UI **:5173**, backend API **:8080**, Prometheus **:9090**, and Grafana **:3000**.
+New accounts start with **NO_ACCESS ? VIEWER ? OPERATOR**. VIEWER members approve VIEWER requests; OPERATOR members approve OPERATOR requests. Self-review is forbidden. ADMIN is separately assigned and provides bootstrap, oversight, and intervention. Empty target groups notify ADMIN as a fallback; populated groups notify their own members. No access is granted automatically. [Security](docs/SECURITY.md).
 
-## Validation / Engineering Evidence
+## Tech Stack
 
-See [the measured load, failure, and scaling report](docs/validation/VALIDATION.md) for results, limitations, and reproduction commands. The lightweight Python standard-library tools live in `scripts/validation/`; stop/start experiments require an explicit `--include-failures` flag. These local checks do not establish production throughput, high availability, or multi-instance detector correctness.
+| Area | Implementation |
+| --- | --- |
+| Backend | Java 21, Spring Boot 4.1.1, Spring Data JPA, Spring Kafka, Flyway |
+| Frontend | React, TypeScript, Vite, React Router |
+| Data / messaging | PostgreSQL 16, Kafka 3.8.1 in single-node KRaft mode |
+| Observability | Actuator, Micrometer, Prometheus, Grafana |
+| Infrastructure / testing | Docker Compose, Maven wrapper, JUnit/MockMvc, Vitest/Testing Library, Python standard-library validation |
 
-## Authentication
+## Quick Start
 
-Open http://localhost:5173, create an account, then log in with email/password. Registration does not automatically log you in. Spring Security uses BCrypt passwords and an HttpOnly, SameSite=Lax session cookie; Logout invalidates the server session. Event and incident APIs and console routes require authentication. Healthchecks and the local Prometheus scrape remain public.
+Install Docker Desktop with Linux containers. From the repository root:
 
-The Docker UI uses the existing same-origin Nginx /api proxy. Host Vite development uses localhost:8080 with explicit localhost:5173 credentialed CORS. The API client fetches a CSRF token before each mutation and includes cookies; it never stores auth tokens in localStorage/sessionStorage.
+```powershell
+docker compose up --build
+```
 
-Sessions are process-local: backend restart logs users out, and multiple backend instances would need sticky routing or shared session storage. Local HTTP cookies are not Secure; HTTPS deployments must enable Secure cookies. Backend-enforced RBAC now provides VIEWER, OPERATOR and ADMIN roles. Public registration defaults to VIEWER; OPERATOR/ADMIN may manage incidents, and ADMIN may manage user roles. VIEWER users may request OPERATOR access, ADMIN users may approve/reject requests, and access/role/incident mutations have an application-level append-only audit trail.
+| Service | Local URL |
+| --- | --- |
+| Application | http://localhost:5173 |
+| Backend health | http://localhost:8080/actuator/health |
+| Prometheus | http://localhost:9090 |
+| Grafana | http://localhost:3000 |
 
-Prompt 23 authentication answers: **"Who are you?"** Prompt 24 authorization answers: **"What are you allowed to do?"**
+Grafana's published **local-only** default login is `admin` / `admin`; change it before exposing the stack. PostgreSQL also uses public development defaults, not production secrets. Kafka is reachable from the host at `localhost:9092`, PostgreSQL at `localhost:5433`.
 
-See [Authentication architecture and verification](docs/security/AUTHENTICATION.md) for API contracts, CSRF/CORS, password rules, test results and validation-tool credentials. Prompt 22 scripts now require SIGNALFORGE_AUTH_EMAIL and SIGNALFORGE_AUTH_PASSWORD supplied through the environment; never commit them.
-## Authorization / RBAC
+No environment file is required to start the stack. Copy [.env.example](.env.example) to `.env` only when configuring optional bootstrap or SMTP. A fresh installation has no application ADMIN: opt-in bootstrap creates a new administrator identity; it refuses to claim an existing non-admin account. Registration does not log you in or grant operational access. See [setup instructions](docs/DEVELOPMENT.md). Never commit real passwords or SMTP credentials.
 
-Spring Security enforces roles on the server while React reflects them in navigation and controls. Admins manage roles at /admin/users; last-admin protection prevents accidental lockout, and current roles are reloaded on requests so an old session cannot retain revoked privileges.
+## API Overview
 
-Local admin bootstrap is explicitly opt-in through environment configuration and disabled by default. See [RBAC architecture, bootstrap and permissions](docs/security/RBAC.md) and [verification results](docs/security/RBAC_VERIFICATION.md).
+Paths below are backend paths; the Docker UI exposes them through `/api`.
 
-POST /events retains its Prompt 23 authenticated-session/CSRF boundary for development compatibility, independent of human roles. This is a documented temporary machine-ingestion identity gap, not an ADMIN capability; production service authentication remains future work.
-## Access governance and audit
+| Area | Important endpoints |
+| --- | --- |
+| Authentication | `GET /auth/csrf`, `POST /auth/register`, `POST /auth/login`, `GET /auth/me`, `POST /auth/logout` |
+| Events | `POST /events`, `GET /events`, `GET /events/{id}` |
+| Incidents | `GET /incidents`, `GET /incidents/{id}`, `PATCH /incidents/{id}/acknowledge`, `PATCH /incidents/{id}/resolve` |
+| Access | `POST /access-requests`, `GET /access-requests/me`, `GET /access-requests/review`, request approve/reject |
+| Admin | `/admin/users`, `/admin/access-requests`, `/admin/audit` |
 
-Use My access to request OPERATOR permission and refresh the review status. ADMIN users review requests under Access Requests and inspect the paginated Audit Log. Approval, role grant and audit persistence share one database transaction; CSRF, last-admin protection and current-session roles remain enforced.
+[API contracts, permissions, and examples](docs/API.md).
 
-See [Access governance](docs/security/ACCESS_GOVERNANCE.md), [Audit design and limitations](docs/security/AUDIT.md), and [Prompt 25 verification](docs/security/ACCESS_GOVERNANCE_VERIFICATION.md).
+## Testing
+
+```powershell
+cd backend
+.\mvnw.cmd '-Duser.timezone=Asia/Kolkata' verify
+cd ../frontend
+npm.cmd ci
+npm.cmd run test
+npm.cmd run build
+cd ..
+python -B -m unittest discover -s scripts/validation -p "test_*.py" -v
+```
+
+Final release verification passed **199 backend tests, 96 frontend tests, and 10 validation tests**, plus the production build.
+
+Backend integration tests require the configured PostgreSQL/Kafka services. Validation unit tests are distinct from opt-in load/failure experiments. [Development](docs/DEVELOPMENT.md), [measured validation evidence](docs/validation/VALIDATION.md), and [final release verification](docs/RELEASE_VERIFICATION.md).
+
+## Project Structure
+
+```text
+backend/          Spring Boot application, tests, Flyway V1?V9
+frontend/         React console and behavioral tests
+infrastructure/   Prometheus/Grafana provisioning
+scripts/validation/  Load/failure tools and unit tests
+docs/             Architecture, API, setup, security, evidence, demo
+```
+
+## Engineering Trade-offs / V1 Limitations
+
+- PostgreSQL and Kafka writes are not atomic. The SQL insert is flushed before publishing, but transaction commit happens afterward; a transactional outbox is a possible production evolution, not implemented.
+- Detector windows/cooldown and the rate limiter are in-memory per backend instance. Restart and horizontal scaling require different state management; late-event handling is partial.
+- One local Kafka broker and limited partitioning provide no broker high availability. Kafka storage is container-local and lost on container recreation; PostgreSQL and monitoring use named volumes.
+- Sessions are process-local and lost on restart. Local HTTP cookies are not Secure; production requires HTTPS and hardened deployment configuration.
+- Notifications are optional, best-effort after commit and depend on external SMTP configuration. No durable mail queue exists.
+- Local Docker is not Kubernetes or a production HA deployment. V1 does not claim exactly-once processing, distributed rate limiting, or production throughput. Audit append-only behavior is application-enforced, not tamper-proof storage.
+
+## Screenshots
+
+Capture real screens using the [screenshot checklist](docs/screenshots/README.md): Overview, Events, Incident detail, Access governance, and Grafana. Images are intentionally pending authenticated manual capture; no fabricated screenshots are included.
+
+For a short walkthrough, see the [5?10 minute demo](docs/DEMO.md).
