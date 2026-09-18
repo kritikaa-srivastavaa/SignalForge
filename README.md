@@ -51,8 +51,15 @@ Open http://localhost:5173, create an account, then log in with email/password. 
 
 The Docker UI uses the existing same-origin Nginx /api proxy. Host Vite development uses localhost:8080 with explicit localhost:5173 credentialed CORS. The API client fetches a CSRF token before each mutation and includes cookies; it never stores auth tokens in localStorage/sessionStorage.
 
-Sessions are process-local: backend restart logs users out, and multiple backend instances would need sticky routing or shared session storage. Local HTTP cookies are not Secure; HTTPS deployments must enable Secure cookies. All authenticated users currently have equal application permissions; RBAC and access governance are not implemented.
+Sessions are process-local: backend restart logs users out, and multiple backend instances would need sticky routing or shared session storage. Local HTTP cookies are not Secure; HTTPS deployments must enable Secure cookies. Backend-enforced RBAC now provides VIEWER, OPERATOR and ADMIN roles. Public registration defaults to VIEWER; OPERATOR/ADMIN may manage incidents, and ADMIN may manage user roles. Access governance remains deferred.
 
-Prompt 23 authentication answers: **"Who are you?"** Prompt 24 authorization will answer: **"What are you allowed to do?"**
+Prompt 23 authentication answers: **"Who are you?"** Prompt 24 authorization answers: **"What are you allowed to do?"**
 
 See [Authentication architecture and verification](docs/security/AUTHENTICATION.md) for API contracts, CSRF/CORS, password rules, test results and validation-tool credentials. Prompt 22 scripts now require SIGNALFORGE_AUTH_EMAIL and SIGNALFORGE_AUTH_PASSWORD supplied through the environment; never commit them.
+## Authorization / RBAC
+
+Spring Security enforces roles on the server while React reflects them in navigation and controls. Admins manage roles at /admin/users; last-admin protection prevents accidental lockout, and current roles are reloaded on requests so an old session cannot retain revoked privileges.
+
+Local admin bootstrap is explicitly opt-in through environment configuration and disabled by default. See [RBAC architecture, bootstrap and permissions](docs/security/RBAC.md) and [verification results](docs/security/RBAC_VERIFICATION.md).
+
+POST /events retains its Prompt 23 authenticated-session/CSRF boundary for development compatibility, independent of human roles. This is a documented temporary machine-ingestion identity gap, not an ADMIN capability; production service authentication remains future work.

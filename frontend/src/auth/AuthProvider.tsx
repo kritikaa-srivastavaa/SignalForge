@@ -12,6 +12,7 @@ interface AuthState {
   register: (input: api.RegisterInput) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => void;
+  updateCurrentUser: (user: User) => void;
 }
 const AuthContext = createContext<AuthState | null>(null);
 
@@ -38,12 +39,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const expired = () => setUser(null);
+    const permissionsChanged = () => setRevision(value => value + 1);
+    window.addEventListener('signalforge:permissions-changed', permissionsChanged);
     window.addEventListener('signalforge:unauthenticated', expired);
-    return () => window.removeEventListener('signalforge:unauthenticated', expired);
+    return () => {
+      window.removeEventListener('signalforge:unauthenticated', expired);
+      window.removeEventListener('signalforge:permissions-changed', permissionsChanged);
+    };
   }, []);
 
   const value: AuthState = {
     user, loading, error,
+    updateCurrentUser(updated) { if (updated.id === user?.id) setUser(updated); },
     async login(input) { setUser(await api.login(input)); },
     async register(input) { await api.register(input); },
     async logout() { await api.logout(); setUser(null); },

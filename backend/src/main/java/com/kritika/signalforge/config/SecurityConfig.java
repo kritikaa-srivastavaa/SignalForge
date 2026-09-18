@@ -32,7 +32,7 @@ public class SecurityConfig {
         var provider = new DaoAuthenticationProvider(email -> {
             var user = users.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("Invalid email or password"));
             return User.withUsername(user.getEmail()).password(user.getPasswordHash())
-                    .authorities(List.of()).build();
+                    .roles(user.getRole().name()).build();
         });
         provider.setPasswordEncoder(encoder);
         return new ProviderManager(provider);
@@ -55,27 +55,37 @@ public class SecurityConfig {
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http, SecurityContextRepository contexts,
-                                           CsrfTokenRepository tokens) throws Exception {
+                                           CsrfTokenRepository tokens, AppUserRepository users) throws Exception {
         AccessDeniedHandler denied = (request, response, failure) -> {
             // CSRF runs before authorization. Protected anonymous mutations still return 401.
             String path = request.getRequestURI().substring(request.getContextPath().length());
             boolean protectedApi = path.equals("/events") || path.startsWith("/events/")
-                    || path.equals("/incidents") || path.startsWith("/incidents/");
+                    || path.equals("/incidents") || path.startsWith("/incidents/") || path.startsWith("/admin/");
             var authentication = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
             boolean anonymous = authentication == null || new org.springframework.security.authentication.AuthenticationTrustResolverImpl().isAnonymous(authentication);
             if (protectedApi && anonymous) json(response, 401, "Authentication required");
-            else json(response, 403, "Invalid or missing CSRF token");
+            else if (failure instanceof CsrfException) securityError(response, "CSRF_INVALID", "Invalid or missing CSRF token");
+            else securityError(response, "FORBIDDEN", "Insufficient permissions");
         };
         http.cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.csrfTokenRepository(tokens))
                 .securityContext(context -> context.securityContextRepository(contexts))
                 .requestCache(cache -> cache.disable())
+                .addFilterBefore(new com.kritika.signalforge.auth.CurrentRoleFilter(users),
+                        org.springframework.security.web.access.intercept.AuthorizationFilter.class)
                 .authorizeHttpRequests(auth -> auth
                         .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET,
                                 "/auth/csrf", "/actuator/health", "/actuator/prometheus").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.POST,
                                 "/auth/register", "/auth/login").permitAll()
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers(org.springframework.http.HttpMethod.PATCH,
+                                "/incidents/*/acknowledge", "/incidents/*/resolve").hasAnyRole("OPERATOR", "ADMIN")
+                        .requestMatchers(org.springframework.http.HttpMethod.GET,
+                                "/events", "/events/**", "/incidents", "/incidents/**").hasAnyRole("VIEWER", "OPERATOR", "ADMIN")
+                        // Preserve Prompt 23 ingestion authentication; human roles are not machine credentials.
+                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/events").authenticated()
                         .anyRequest().authenticated())
                 .exceptionHandling(errors -> errors
                         .authenticationEntryPoint((request, response, failure) -> json(response, 401, "Authentication required"))
@@ -84,6 +94,12 @@ public class SecurityConfig {
                         .invalidateHttpSession(true).clearAuthentication(true).deleteCookies("JSESSIONID")
                         .logoutSuccessHandler((request, response, authentication) -> response.setStatus(204)));
         return http.build();
+    }
+
+    private static void securityError(HttpServletResponse response, String code, String message) throws IOException {
+        response.setStatus(403);
+        response.setContentType("application/json");
+        response.getWriter().write("{\"code\":\"" + code + "\",\"message\":\"" + message + "\"}");
     }
 
     private static void json(HttpServletResponse response, int status, String message) throws IOException {

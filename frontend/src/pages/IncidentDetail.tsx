@@ -1,3 +1,5 @@
+import { useAuth } from '../auth/AuthProvider';
+import { canManageIncidents } from '../auth/permissions';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { ApiError } from '../api/client';
@@ -34,6 +36,7 @@ export function IncidentDetail() {
 }
 
 function IncidentDetailContent({ id }: { id: string }) {
+  const { user } = useAuth();
   const [incident, setIncident] = useState<Incident>();
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string>();
@@ -88,7 +91,7 @@ function IncidentDetailContent({ id }: { id: string }) {
 
   async function mutate(action: Action) {
     // The ref closes the gap before React renders disabled buttons.
-    if (request.current || !incident || needsRefresh) return;
+    if (!canManageIncidents(user) || request.current || !incident || needsRefresh) return;
     if (incident.status === 'RESOLVED' || (action === 'acknowledge' && incident.status !== 'OPEN')) return;
     if (action === 'resolve' && !confirmResolve) return;
     const controller = new AbortController();
@@ -161,7 +164,7 @@ function IncidentDetailContent({ id }: { id: string }) {
       <Panel title="Incident Actions">
         <div className="incident-actions" aria-busy={pending !== null}>
           {feedback && <p className={`action-feedback ${feedback.tone}`} role={feedback.tone === 'error' ? 'alert' : 'status'}>{feedback.message}</p>}
-          {incident.status === 'RESOLVED' ? <p className="subtle">This incident is resolved. No further lifecycle actions are available.</p> : <>
+          {!canManageIncidents(user) ? <p className="subtle">Read-only access. An operator or administrator can manage incidents.</p> : incident.status === 'RESOLVED' ? <p className="subtle">This incident is resolved. No further lifecycle actions are available.</p> : <>
             <p className="subtle">{incident.status === 'OPEN' ? 'Acknowledge to mark this incident as under investigation, or resolve it when work is complete.' : 'This incident is acknowledged. Resolve it when work is complete.'}</p>
             <div className="detail-buttons">
               {incident.status === 'OPEN' && <button className="button secondary" disabled={pending !== null || needsRefresh} onClick={() => void mutate('acknowledge')}>{pending === 'acknowledge' ? 'Acknowledging...' : 'Acknowledge'}</button>}

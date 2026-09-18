@@ -40,7 +40,9 @@ export interface PageQuery {
 export type EventQuery = PageQuery & Partial<Pick<Filters, 'service' | 'type' | 'severity'>>;
 export type IncidentQuery = EventQuery & { status?: IncidentStatus | '' };
 
+export type UserRole = 'VIEWER' | 'OPERATOR' | 'ADMIN';
 export interface User {
+  role: UserRole;
   id: string;
   email: string;
   displayName: string;

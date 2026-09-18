@@ -6,7 +6,7 @@ import { App } from '../App';
 import { safeDestination } from '../auth/AuthRoutes';
 import { get, patch, post } from '../api/client';
 
-const identity = { id: 'user-1', email: 'test@example.com', displayName: 'Test User', createdAt: '2026-09-17T10:00:00Z' };
+const identity = { role: 'OPERATOR', id: 'user-1', email: 'test@example.com', displayName: 'Test User', createdAt: '2026-09-17T10:00:00Z' };
 const incident = { id: 'ca50dfc3-f812-4663-bad0-a49a88d38978', sourceEventId: 'event-1', service: 'payment',
   type: 'ERROR', severity: 'HIGH', title: 'Auth incident', status: 'OPEN', createdAt: identity.createdAt };
 const page = { content: [], page: 0, size: 20, totalElements: 0, totalPages: 0, first: true, last: true };

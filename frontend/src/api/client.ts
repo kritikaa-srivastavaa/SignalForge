@@ -2,16 +2,18 @@ const baseUrl = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080').r
 
 export class ApiError extends Error {
   readonly status: number;
-  constructor(status: number) {
+  readonly code?: string;
+  constructor(status: number, code?: string) {
     const messages: Record<number, string> = {
       400: 'Check the supplied values and try again.',
       401: 'Please log in to continue.',
-      403: 'Your security token expired. Please try again.',
+      403: code === 'CSRF_INVALID' ? 'Your security token expired. Please try again.' : 'You do not have permission to perform this action.',
       409: 'The request conflicts with the current record.',
     };
     super(messages[status] || `The server returned HTTP ${status}. Please retry.`);
     this.name = 'ApiError';
     this.status = status;
+    this.code = code;
   }
 }
 
@@ -22,7 +24,13 @@ async function request<T>(path: string, options: RequestInit): Promise<T> {
     if (response.status === 401 && !path.startsWith('/auth/')) {
       window.dispatchEvent(new Event('signalforge:unauthenticated'));
     }
-    throw new ApiError(response.status);
+    let code: string | undefined;
+    if (response.status === 403) {
+      const body = await response.json().catch(() => ({}));
+      if (body.code === 'FORBIDDEN' || body.code === 'CSRF_INVALID') code = body.code;
+      if (code === 'FORBIDDEN') window.dispatchEvent(new Event('signalforge:permissions-changed'));
+    }
+    throw new ApiError(response.status, code);
   }
   if (response.status === 204) return undefined as T;
   return response.json() as Promise<T>;
@@ -54,4 +62,8 @@ export function post<T>(path: string, body?: unknown): Promise<T> {
 
 export function patch<T>(path: string, signal?: AbortSignal): Promise<T> {
   return mutate<T>(path, 'PATCH', undefined, signal);
+}
+
+export function patchJson<T>(path: string, body: unknown): Promise<T> {
+  return mutate<T>(path, 'PATCH', body);
 }

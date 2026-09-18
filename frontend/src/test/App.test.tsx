@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 vi.mock('../auth/AuthProvider', () => ({
   AuthProvider: ({ children }: { children: ReactNode }) => children,
   useAuth: () => ({
-    user: { id: 'test-user', email: 'test@example.com', displayName: 'Test User' },
+    user: { id: 'test-user', email: 'test@example.com', displayName: 'Test User', role: 'OPERATOR' },
     loading: false, error: null, logout: vi.fn(), refreshUser: vi.fn(),
   }),
 }));

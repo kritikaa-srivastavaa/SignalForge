@@ -53,10 +53,12 @@ public class AuthController {
         // A JSON controller must invoke the same built-in session protections as a login filter.
         sessionStrategy.onAuthentication(authentication, request, response);
         var context = SecurityContextHolder.createEmptyContext();
-        context.setAuthentication(authentication);
+        var user = service.currentUser(authentication.getName());
+        context.setAuthentication(UsernamePasswordAuthenticationToken.authenticated(
+                new SessionIdentity(user.id(), user.email()), null, authentication.getAuthorities()));
         SecurityContextHolder.setContext(context);
         contexts.saveContext(context, request, response);
-        return service.currentUser(authentication.getName());
+        return user;
     }
 
     @GetMapping("/me")

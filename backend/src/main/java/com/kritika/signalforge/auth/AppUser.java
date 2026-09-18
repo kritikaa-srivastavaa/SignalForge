@@ -24,6 +24,13 @@ public class AppUser {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 16)
+    private UserRole role = UserRole.VIEWER;
+
+    public UserRole getRole() { return role; }
+    void changeRole(UserRole role) { this.role = java.util.Objects.requireNonNull(role); }
+
     protected AppUser() { }
 
     public AppUser(String email, String passwordHash, String displayName) {

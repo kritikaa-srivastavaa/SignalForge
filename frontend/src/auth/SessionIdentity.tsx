@@ -16,7 +16,7 @@ export function SessionIdentity() {
     finally { submitting.current = false; setPending(false); }
   }
   return <div className="session-identity">
-    <span>{user?.displayName}<small>{user?.email}</small></span>
+    <span>{user?.displayName}<small><span>{user?.email}</span> · {user?.role}</small></span>
     <button className="button secondary" disabled={pending} onClick={() => void signOut()}>{pending ? 'Logging out…' : 'Logout'}</button>
     {error && <span role="alert">{error}</span>}
   </div>;

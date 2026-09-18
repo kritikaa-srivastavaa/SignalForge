@@ -5,7 +5,7 @@ import { AuthPage } from '../pages/AuthPage';
 
 // Only known application routes may be restored; never redirect to supplied external URLs.
 export function safeDestination(value: unknown): string {
-  return typeof value === 'string' && /^(\/$|\/events$|\/incidents$|\/incidents\/[0-9a-f-]+$)/i.test(value) ? value : '/';
+  return typeof value === 'string' && /^(\/$|\/admin\/users$|\/events$|\/incidents$|\/incidents\/[0-9a-f-]+$)/i.test(value) ? value : '/';
 }
 
 export function AuthRoutes({ children }: { children: ReactNode }) {

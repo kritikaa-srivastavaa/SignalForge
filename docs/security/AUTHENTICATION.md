@@ -1,5 +1,7 @@
 # Authentication foundation (Prompt 23)
 
+> This records the Prompt 23 foundation. Prompt 24 now extends it with [RBAC](RBAC.md); current user responses also include role, and application permissions are role-dependent.
+
 SignalForge uses Spring Security 7.1.1 (managed by Spring Boot 4.1.1), BCrypt, and process-local servlet sessions. The browser talks to Nginx at http://localhost:5173 and uses its existing /api proxy. The server session is authoritative; React stores only the safe user representation in memory. No JWT, browser-storage auth flags, product roles, or access governance are implemented.
 
 Prompt 23 authentication answers **"Who are you?"** Prompt 24 authorization will answer **"What are you allowed to do?"** All authenticated users currently share application permissions.

@@ -9,6 +9,8 @@ public class DevelopmentCorsConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         allow(registry, "/events", "GET", "POST");
+        allow(registry, "/admin/users", "GET");
+        allow(registry, "/admin/users/{id}/role", "PATCH");
         for (String path : new String[] {"/events/{id}", "/incidents", "/incidents/{id}", "/auth/me", "/auth/csrf"}) {
             allow(registry, path, "GET");
         }

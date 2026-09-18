@@ -80,7 +80,7 @@ class AuthenticationIntegrationTests {
                 .andExpect(status().isCreated()).andExpect(jsonPath("$.id").isNotEmpty())
                 .andExpect(jsonPath("$.email").value(email)).andExpect(jsonPath("$.displayName").value("Test User"))
                 .andExpect(jsonPath("$.createdAt").isNotEmpty()).andReturn().getResponse().getContentAsString();
-        assertThat(json.readTree(body).size()).isEqualTo(4);
+        assertThat(json.readTree(body).size()).isEqualTo(5);
         var user = users.findByEmail(email).orElseThrow();
         assertThat(user.getPasswordHash()).isNotEqualTo(PASSWORD).startsWith("$2");
         assertThat(encoder.matches(PASSWORD, user.getPasswordHash())).isTrue();
@@ -188,6 +188,9 @@ class AuthenticationIntegrationTests {
 
     @Test void authenticatedIncidentReadsAndLifecycleWork() throws Exception {
         Client client = login();
+        AppUser operator = users.findByEmail(email).orElseThrow();
+        operator.changeRole(UserRole.OPERATOR);
+        users.saveAndFlush(operator);
         Incident incident = incidents.saveAndFlush(new Incident(UUID.randomUUID(), email, "AUTH_TEST", "HIGH", "Auth test"));
         incidentIds.add(incident.getId());
         String path = "/incidents/" + incident.getId();

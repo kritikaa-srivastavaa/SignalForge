@@ -180,3 +180,12 @@ input::placeholder { color: #758178; }
   .session-identity > span { max-width: 150px; }
   .auth-card { padding: 22px; }
 }
+/* Minimal user administration controls. */
+.admin-users { padding: 0 22px; }
+.admin-user { display: flex; justify-content: space-between; align-items: start; gap: 24px; padding: 22px 0; border-bottom: 1px solid var(--border); }
+.admin-user p { font-size: 12px; overflow-wrap: anywhere; }
+.admin-user label { font-size: 12px; }
+.admin-user select { padding: 8px; border: 1px solid var(--border); border-radius: 4px; font: inherit; }
+.admin-user [role="alert"] { color: var(--danger); }
+.admin-user [role="status"] { color: var(--success); }
+@media (max-width: 700px) { .admin-user { flex-direction: column; gap: 12px; } }
