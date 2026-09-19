@@ -1,16 +1,23 @@
 package com.kritika.signalforge.config;
 
 import org.springframework.context.annotation.Configuration;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 public class DevelopmentCorsConfig implements WebMvcConfigurer {
+    @Value("${signalforge.frontend-origin:http://localhost:5173}")
+    private String frontendOrigin;
+
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         allow(registry, "/events", "GET", "POST");
         allow(registry, "/access-requests", "POST");
         allow(registry, "/access-requests/me", "GET");
+        allow(registry, "/access-requests/review", "GET");
+        allow(registry, "/access-requests/{id}/approve", "PATCH");
+        allow(registry, "/access-requests/{id}/reject", "PATCH");
         allow(registry, "/admin/access-requests", "GET");
         allow(registry, "/admin/access-requests/{id}/approve", "PATCH");
         allow(registry, "/admin/access-requests/{id}/reject", "PATCH");
@@ -29,7 +36,7 @@ public class DevelopmentCorsConfig implements WebMvcConfigurer {
     }
 
     private void allow(CorsRegistry registry, String path, String... methods) {
-        registry.addMapping(path).allowedOrigins("http://localhost:5173")
+        registry.addMapping(path).allowedOrigins(frontendOrigin)
                 .allowedMethods(methods).allowedHeaders("Content-Type", "X-CSRF-TOKEN")
                 .allowCredentials(true);
     }

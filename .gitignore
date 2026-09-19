@@ -47,3 +47,12 @@ coverage/
 # Python validation caches
 __pycache__/
 *.py[cod]
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+
+# Local deployment credentials
+/render-token.txt
+/cloud-admin-password.txt

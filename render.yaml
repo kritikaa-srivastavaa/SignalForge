@@ -1,0 +1,36 @@
+# Free portfolio deployment template. Configure all sync:false values in Render.
+services:
+  - type: web
+    name: signalforge-api
+    runtime: docker
+    plan: free
+    branch: main
+    dockerContext: ./backend
+    dockerfilePath: ./backend/Dockerfile
+    healthCheckPath: /actuator/health
+    autoDeployTrigger: off
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: cloud
+      - key: JAVA_TOOL_OPTIONS
+        value: -Duser.timezone=Asia/Kolkata -XX:MaxRAMPercentage=60 -XX:ActiveProcessorCount=2
+      - key: SIGNALFORGE_FRONTEND_ORIGIN
+        sync: false
+      - key: CLOUD_DATABASE_JDBC_URL
+        sync: false
+      - key: CLOUD_DATABASE_USERNAME
+        sync: false
+      - key: CLOUD_DATABASE_PASSWORD
+        sync: false
+      - key: CLOUD_KAFKA_BOOTSTRAP_SERVERS
+        sync: false
+      - key: CLOUD_KAFKA_CA_CERT
+        sync: false
+      - key: CLOUD_KAFKA_CLIENT_CERT
+        sync: false
+      - key: CLOUD_KAFKA_CLIENT_KEY
+        sync: false
+      - key: SIGNALFORGE_BOOTSTRAP_ENABLED
+        value: false
+      - key: SIGNALFORGE_MAIL_ENABLED
+        value: false

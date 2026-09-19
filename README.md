@@ -2,9 +2,19 @@
 
 A distributed event-processing and incident-detection platform built with Java/Spring Boot, Kafka, PostgreSQL, React, Docker, and Prometheus/Grafana. V1 is a single backend application with asynchronous processing, backed by a six-service local stack.
 
+## Live Demo
+
+**[Open SignalForge](https://signalforge.ignal-orge.workers.dev)**
+
+The portfolio deployment uses Cloudflare Workers Static Assets, a Render Free Java backend, and Aiven Free PostgreSQL/Kafka. The first request after an idle period can take about a minute while free services wake up. Registration, login, sessions, CSRF, access requests, logout, health, database migrations, and Kafka connectivity were verified publicly.
+
+New accounts start with `NO_ACCESS` and cannot see operational data until their VIEWER request is approved. Event ingestion, incident lifecycle, and administrator screens therefore require an approved account. Prometheus, Grafana, and SMTP are intentionally not hosted publicly; the complete observability stack remains available through local Docker Compose.
+
+See the [deployment architecture, verification, and free-tier limitations](docs/DEPLOYMENT.md).
+
 ## What SignalForge Does
 
-Applications send telemetry events ? the API persists and publishes them ? a Kafka listener processes them ? rolling-window detection creates incidents ? operators investigate, acknowledge, and resolve incidents. The operations console and metrics dashboard provide visibility.
+Applications send telemetry events → the API persists and publishes them → a Kafka listener processes them → rolling-window detection creates incidents → operators investigate, acknowledge, and resolve incidents. The operations console and metrics dashboard provide visibility.
 
 ## Architecture
 
@@ -31,7 +41,7 @@ The API-to-processor relationship is asynchronous through Kafka; no separate pro
 ## Key Engineering Features
 
 - Kafka JSON event processing, durable UUID idempotency markers, bounded retries and dead-letter handling.
-- Rolling-window spike detection and OPEN ? ACKNOWLEDGED ? RESOLVED incident lifecycle.
+- Rolling-window spike detection and OPEN → ACKNOWLEDGED → RESOLVED incident lifecycle.
 - Paginated, filtered reads, database indexes, local rate limiting, and optimistic locking.
 - Prometheus business metrics and a provisioned Grafana dashboard.
 - Dockerized backend, frontend, PostgreSQL, Kafka, Prometheus, and Grafana.
@@ -40,7 +50,7 @@ The API-to-processor relationship is asynchronous through Kafka; no separate pro
 
 ## Access Model
 
-New accounts start with **NO_ACCESS ? VIEWER ? OPERATOR**. VIEWER members approve VIEWER requests; OPERATOR members approve OPERATOR requests. Self-review is forbidden. ADMIN is separately assigned and provides bootstrap, oversight, and intervention. Empty target groups notify ADMIN as a fallback; populated groups notify their own members. No access is granted automatically. [Security](docs/SECURITY.md).
+New accounts start with **NO_ACCESS → VIEWER → OPERATOR**. VIEWER members approve VIEWER requests; OPERATOR members approve OPERATOR requests. Self-review is forbidden. ADMIN is separately assigned and provides bootstrap, oversight, and intervention. Empty target groups notify ADMIN as a fallback; populated groups notify their own members. No access is granted automatically. [Security](docs/SECURITY.md).
 
 ## Tech Stack
 
@@ -105,7 +115,7 @@ Backend integration tests require the configured PostgreSQL/Kafka services. Vali
 ## Project Structure
 
 ```text
-backend/          Spring Boot application, tests, Flyway V1?V9
+backend/          Spring Boot application, tests, Flyway V1–V9
 frontend/         React console and behavioral tests
 infrastructure/   Prometheus/Grafana provisioning
 scripts/validation/  Load/failure tools and unit tests
@@ -125,4 +135,4 @@ docs/             Architecture, API, setup, security, evidence, demo
 
 Capture real screens using the [screenshot checklist](docs/screenshots/README.md): Overview, Events, Incident detail, Access governance, and Grafana. Images are intentionally pending authenticated manual capture; no fabricated screenshots are included.
 
-For a short walkthrough, see the [5?10 minute demo](docs/DEMO.md).
+For a short walkthrough, see the [5–10 minute demo](docs/DEMO.md).
